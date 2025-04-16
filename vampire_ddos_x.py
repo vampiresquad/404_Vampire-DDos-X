@@ -22,7 +22,7 @@ def show_banner(mode):
    Vampire-X {'Admin Panel' if mode == 'admin' else 'User Panel'}
    Mode: {'Administrator Access' if mode == 'admin' else 'User Access'}
    Status: ACTIVE | Anonymous Mode: ENABLED
-   Coded by: JANU (aka Sourav)
+   Coded by: Muhammad Shourov(Vampire)
 {'='*50}
 """
     print(banner)
