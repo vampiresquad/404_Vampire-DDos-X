@@ -46,5 +46,6 @@ It supports:
 
 ```bash
 git clone https://github.com/vampiresquad/Vampire-DDOS-X.git
+(https://github.com/vampiresquad/404_Vampire-DDos-X.git)
 cd Vampire-DDOS-X
 bash install.sh
