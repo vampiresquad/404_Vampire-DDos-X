@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 import os import sys import time import hashlib import traceback
 
-=== Dynamic Import Fix and Proxy Handling ===
+#=== Dynamic Import Fix and Proxy Handling ===
 
 def fix_imports(): try: import colorama from colorama import Fore, Style except ImportError: os.system("pip install colorama") import colorama from colorama import Fore, Style
 
