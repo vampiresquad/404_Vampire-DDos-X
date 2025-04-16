@@ -1,88 +1,109 @@
-vampire_ddos_x.py
+#!/usr/bin/env python3 import os import sys import time import hashlib import traceback
 
-import os import sys import time import importlib import threading from colorama import Fore, Style, init
+=== Dynamic Import Fix and Proxy Handling ===
 
-init(autoreset=True)
+def fix_imports(): try: import colorama from colorama import Fore, Style except ImportError: os.system("pip install colorama") import colorama from colorama import Fore, Style
 
---------------------------- CONFIG ---------------------------
+colorama.init()
+return Fore, Style
 
-ADMIN_PASSWORD = "vampire@root" MODULES = { "TCP Flood": "attacks.tcp", "UDP Flood": "attacks.udp", "Slowloris": "attacks.slowloris" }
+Fore, Style = fix_imports()
 
------------------------- UTILITIES ---------------------------
+=== Directories Setup ===
 
-def clear(): os.system('cls' if os.name == 'nt' else 'clear')
+def auto_create_dirs(): os.makedirs("logs", exist_ok=True) os.makedirs("proxies", exist_ok=True) for f in ["logs/.keep", "proxies/proxy.txt", "proxies/working_proxies.txt"]: open(f, 'a').close()
 
-def check_dependencies(): try: import requests except: os.system("pip install requests") try: import colorama except: os.system("pip install colorama")
+def verify_password(input_password): return hashlib.sha256(input_password.encode()).hexdigest() == PASSWORD_HASH
 
-def banner(): clear() print(Fore.RED + Style.BRIGHT + f""" ██╗   ██╗ █████╗ ███╗   ███╗██████╗ ██╗██████╗ ███████╗ ██║   ██║██╔══██╗████╗ ████║██╔══██╗██║██╔══██╗██╔════╝ ██║   ██║███████║██╔████╔██║██████╔╝██║██║  ██║█████╗
-██║   ██║██╔══██║██║╚██╔╝██║██╔═══╝ ██║██║  ██║██╔══╝
-╚██████╔╝██║  ██║██║ ╚═╝ ██║██║     ██║██████╔╝███████╗ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝     ╚═╝╚═════╝ ╚══════╝ {Fore.YELLOW}Powerful DDoS Tool by Vampire Squad """ + Style.RESET_ALL)
+=== Auto Fix Missing Modules ===
 
-def auto_fix_structure(): required_dirs = ["logs", "proxies", "attacks"] required_files = { "proxies/proxy.txt": "", "proxies/working_proxies.txt": "", "logs/.keep": "", } for d in required_dirs: os.makedirs(d, exist_ok=True) for f, content in required_files.items(): if not os.path.exists(f): with open(f, 'w') as fp: fp.write(content)
+def try_import(module, pip_name=None): try: return import(module) except ImportError: os.system(f"pip install {pip_name or module}") return import(module)
 
-def get_input(prompt): try: return input(prompt) except KeyboardInterrupt: print("\n[!] Interrupted.") sys.exit(0)
+=== Load Attack Modules (Auto Recovery) ===
 
------------------------- MAIN MENU ---------------------------
+def try_load_attacks(): try: global tcp, udp, slowloris import attacks.tcp as tcp import attacks.udp as udp import attacks.slowloris as slowloris except Exception: os.makedirs("attacks", exist_ok=True) # Minimal stub implementations (real logic should be securely loaded) with open("attacks/tcp.py", "w") as f: f.write("""def attack(ip, port, threads):\n    print(f'TCP Flood to {ip}:{port} with {threads} threads')\n""") with open("attacks/udp.py", "w") as f: f.write("""def attack(ip, port, threads):\n    print(f'UDP Flood to {ip}:{port} with {threads} threads')\n""") with open("attacks/slowloris.py", "w") as f: f.write("""def attack(domain, threads):\n    print(f'Slowloris Attack to {domain} with {threads} threads')\n""") try_load_attacks()
 
-def attack_menu(): print(Fore.CYAN + "\nAvailable Attacks:") for idx, key in enumerate(MODULES.keys(), start=1): print(f"  {idx}. {key}") print("  0. Exit")
+def try_load_proxy_checker(): try: global load_proxies from proxy_checker import load_proxies except Exception: with open("proxy_checker.py", "w") as f: f.write("""def load_proxies():\n    print('Loading proxies... [Dummy Function]')\n""") try_load_proxy_checker()
 
-choice = get_input(Fore.YELLOW + "\nSelect Attack [0-9]: ")
-if choice == '0':
-    sys.exit(0)
+=== Banners ===
 
-try:
-    idx = int(choice) - 1
-    attack_name = list(MODULES.keys())[idx]
-    module_path = MODULES[attack_name]
-    module = importlib.import_module(module_path)
+def banner_admin(): print(Fore.RED + Style.BRIGHT + """ ██╗░░░██╗░█████╗░███╗░░░███╗██████╗░███████╗██╗███╗░░██╗ ██║░░░██║██╔══██╗████╗░████║██╔══██╗██╔════╝██║████╗░██║ ╚██╗░██╔╝███████║██╔████╔██║██║░░██║█████╗░░██║██╔██╗██║ ░╚████╔╝░██╔══██║██║╚██╔╝██║██║░░██║██╔══╝░░██║██║╚████║ ░░╚██╔╝░░██║░░██║██║░╚═╝░██║██████╔╝███████╗██║██║░╚███║ ░░░╚═╝░░░╚═╝░░╚═╝╚═╝░░░░░╚═╝╚═════╝░╚══════╝╚═╝╚═╝░░╚══╝ [ Vampire-X Admin Panel ] """ + Style.RESET_ALL)
 
-    ip = get_input(Fore.GREEN + "Target IP: ")
-    port = int(get_input("Target Port: "))
-    duration = int(get_input("Duration (in seconds): "))
+def banner_user(): print(Fore.CYAN + Style.BRIGHT + """ ╔═════════════════════════════════════╗ ║         Vampire-X User Panel       ║ ╚═════════════════════════════════════╝ """ + Style.RESET_ALL)
 
-    thread = threading.Thread(target=module.__dict__[module_path.split('.')[-1] + '_attack'], args=(ip, port, duration))
-    thread.start()
-    thread.join()
+=== Menus ===
 
-except (IndexError, ValueError):
-    print(Fore.RED + "Invalid input!")
-except Exception as e:
-    print(Fore.RED + f"Error: {e}")
+def admin_menu(): print("[1] TCP Flood") print("[2] UDP Flood") print("[3] Slowloris") print("[4] Check Proxies") print("[0] Exit")
 
-time.sleep(2)
-main()
+def user_menu(): print("[1] TCP Flood") print("[2] UDP Flood") print("[0] Exit")
 
----------------------- ADMIN MODE -----------------------------
+=== Live Attack Logging ===
 
-def admin_login(): pw = get_input(Fore.MAGENTA + "Enter Admin Password: ") if pw == ADMIN_PASSWORD: print(Fore.GREEN + "Access Granted! Welcome Admin.") advanced_dashboard() else: print(Fore.RED + "Access Denied!") time.sleep(2) main()
+def log_attack(atype, target, port, threads): with open("logs/attack.log", "a") as f: f.write(f"{time.ctime()} | {atype} | {target}:{port} | Threads: {threads}\n")
 
-def advanced_dashboard(): while True: print(Fore.BLUE + "\n[Admin Dashboard] Select Option:") print("  1. Launch Attack") print("  2. View Working Proxies") print("  3. Exit") ch = get_input("Choice: ")
+=== Handle Choices ===
 
-if ch == '1':
-        attack_menu()
-    elif ch == '2':
-        try:
-            with open("proxies/working_proxies.txt") as f:
-                print(Fore.GREEN + f.read())
-        except:
-            print(Fore.RED + "No working proxies found!")
-    elif ch == '3':
-        sys.exit(0)
+def handle_choice(choice, mode="user"): try: if choice == "1": target = input("Target IP/Domain: ") port = int(input("Port: ")) threads = int(input("Threads: ")) log_attack("TCP", target, port, threads) tcp.attack(target, port, threads)
+
+elif choice == "2":
+        target = input("Target IP/Domain: ")
+        port = int(input("Port: "))
+        threads = int(input("Threads: "))
+        log_attack("UDP", target, port, threads)
+        udp.attack(target, port, threads)
+
+    elif choice == "3" and mode == "admin":
+        target = input("Target Domain: ")
+        threads = int(input("Threads: "))
+        log_attack("Slowloris", target, 80, threads)
+        slowloris.attack(target, threads)
+
+    elif choice == "4" and mode == "admin":
+        load_proxies()
+
+    elif choice == "0":
+        print("Exiting...")
+        sys.exit()
+
     else:
-        print(Fore.RED + "Invalid choice.")
+        print(Fore.YELLOW + "Invalid Option!" + Style.RESET_ALL)
 
---------------------------- MAIN ------------------------------
+except Exception as e:
+    with open("logs/errors.log", "a") as f:
+        f.write(f"{time.ctime()} | Error: {str(e)}\n{traceback.format_exc()}\n")
+    print(Fore.RED + f"An error occurred: {e}" + Style.RESET_ALL)
 
-def main(): banner() auto_fix_structure() check_dependencies() print(Fore.YELLOW + "\nModes:") print("  1. Admin (Password Protected)") print("  2. Public (No Password)")
+=== Main Execution ===
 
-mode = get_input("\nChoose Mode [1/2]: ")
-if mode == '1':
-    admin_login()
-elif mode == '2':
-    attack_menu()
-else:
-    print(Fore.RED + "Invalid selection.")
-    time.sleep(1)
-    main()
+PASSWORD_HASH = hashlib.sha256("SH404".encode()).hexdigest()
+
+def main(): try: auto_create_dirs() try_load_attacks() try_load_proxy_checker()
+
+print("[1] Admin Access")
+    print("[2] User Access")
+    level = input("Select Mode: ")
+    mode = "user"
+
+    if level == "1":
+        pwd = input("Enter Admin Password: ")
+        if verify_password(pwd):
+            mode = "admin"
+        else:
+            print(Fore.RED + "Wrong Password! Switching to User Mode..." + Style.RESET_ALL)
+
+    os.system('cls' if os.name == 'nt' else 'clear')
+    banner_admin() if mode == "admin" else banner_user()
+
+    while True:
+        admin_menu() if mode == "admin" else user_menu()
+        choice = input("Select Option: ")
+        handle_choice(choice, mode)
+        input("\nPress Enter to continue...")
+        os.system('cls' if os.name == 'nt' else 'clear')
+        banner_admin() if mode == "admin" else banner_user()
+
+except KeyboardInterrupt:
+    print(Fore.RED + "\nInterrupted. Exiting..." + Style.RESET_ALL)
 
 if name == "main": main()
+
