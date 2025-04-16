@@ -1,61 +1,30 @@
+# proxy_checker.py
+
 import requests
-import threading
-import os
-import time
-
-PROXY_FILE = 'proxies/proxy.txt'
-WORKING_FILE = 'proxies/working_proxies.txt'
-TIMEOUT = 5  # seconds
-THREAD_COUNT = 100
-
-working_proxies = []
-lock = threading.Lock()
-
-def check_proxy(proxy):
-    try:
-        proxies = {
-            'http': f'http://{proxy}',
-            'https': f'http://{proxy}'
-        }
-        response = requests.get('http://httpbin.org/ip', proxies=proxies, timeout=TIMEOUT)
-        if response.status_code == 200:
-            with lock:
-                working_proxies.append(proxy)
-                print(f'\033[92m[+] Working: {proxy}\033[0m')
-    except:
-        print(f'\033[91m[-] Dead: {proxy}\033[0m')
+from concurrent.futures import ThreadPoolExecutor
 
 def load_proxies():
-    if not os.path.exists(PROXY_FILE):
-        print(f'\033[91m[!] Proxy file not found: {PROXY_FILE}\033[0m')
-        return []
-    with open(PROXY_FILE, 'r') as file:
-        return [line.strip() for line in file if line.strip()]
+    try:
+        with open("proxies/proxy.txt", "r") as file:
+            proxies = [p.strip() for p in file.readlines() if p.strip()]
+        print(f"[Proxy Checker] Loaded {len(proxies)} proxies")
 
-def save_working_proxies():
-    with open(WORKING_FILE, 'w') as file:
-        for proxy in working_proxies:
-            file.write(proxy + '\n')
-    print(f'\n\033[94m[✓] Saved {len(working_proxies)} working proxies to {WORKING_FILE}\033[0m')
+        def check(proxy):
+            try:
+                response = requests.get(
+                    "http://ip-api.com/json",
+                    proxies={"http": f"http://{proxy}", "https": f"http://{proxy}"},
+                    timeout=3
+                )
+                if response.status_code == 200:
+                    with open("proxies/working_proxies.txt", "a") as wf:
+                        wf.write(proxy + "\n")
+                    print(f"[Proxy Checker] Working: {proxy}")
+            except:
+                pass
 
-def start_checking():
-    proxies = load_proxies()
-    if not proxies:
-        return
-    print(f'\n\033[96m[*] Checking {len(proxies)} proxies...\033[0m\n')
-    threads = []
+        with ThreadPoolExecutor(max_workers=50) as executor:
+            executor.map(check, proxies)
 
-    for proxy in proxies:
-        while threading.active_count() >= THREAD_COUNT:
-            time.sleep(0.1)
-        t = threading.Thread(target=check_proxy, args=(proxy,))
-        t.start()
-        threads.append(t)
-
-    for t in threads:
-        t.join()
-
-    save_working_proxies()
-
-if __name__ == '__main__':
-    start_checking()
+    except FileNotFoundError:
+        print("[Proxy Checker] proxy.txt not found.")
