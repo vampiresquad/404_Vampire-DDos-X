@@ -1,92 +1,88 @@
-#!/usr/bin/env python3
+vampire_ddos_x.py
 
-import os
-import sys
-import time
-import random
-import threading
-from colorama import Fore, Style, init
+import os import sys import time import importlib import threading from colorama import Fore, Style, init
 
-# Initialize colorama
 init(autoreset=True)
 
-# Password Protected Mode
-PASSWORD = "SH404"
+--------------------------- CONFIG ---------------------------
 
-# Banner
-def banner():
-    os.system('clear' if os.name != 'nt' else 'cls')
-    print(Fore.RED + Style.BRIGHT + """
-██╗   ██╗ █████╗ ███╗   ███╗██████╗ ██╗██████╗ ███████╗
-██║   ██║██╔══██╗████╗ ████║██╔══██╗██║██╔══██╗██╔════╝
-██║   ██║███████║██╔████╔██║██████╔╝██║██████╔╝█████╗  
-██║   ██║██╔══██║██║╚██╔╝██║██╔═══╝ ██║██╔═══╝ ██╔══╝  
-╚██████╔╝██║  ██║██║ ╚═╝ ██║██║     ██║██║     ███████╗
- ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝     ╚═╝╚═╝     ╚══════╝
-             [ VAMPIRE-DDOS-X ]        
-    """)
-    print(Fore.CYAN + "     Developed by: Muhammad Shourov (VAMPIRE)")
-    print(Fore.YELLOW + "     Team: Vampire Squad | GitHub: vampiresquad\n")
+ADMIN_PASSWORD = "vampire@root" MODULES = { "TCP Flood": "attacks.tcp", "UDP Flood": "attacks.udp", "Slowloris": "attacks.slowloris" }
 
-# Load proxies if available
-def load_proxies():
-    proxies = []
-    if os.path.exists("proxies.txt"):
-        with open("proxies.txt", "r") as file:
-            proxies = [line.strip() for line in file if line.strip()]
-    return proxies
+------------------------ UTILITIES ---------------------------
 
-# Module runner
-def run_attack(module_name, target, port, threads, proxies):
-    try:
-        attack_module = __import__(f"attacks.{module_name}", fromlist=["start_attack"])
-        attack_module.start_attack(target, port, threads, proxies)
-    except Exception as e:
-        print(Fore.RED + f"[!] Failed to run module '{module_name}': {e}")
+def clear(): os.system('cls' if os.name == 'nt' else 'clear')
 
-# Menu
-def menu():
-    banner()
-    print(Fore.GREEN + "[1] TCP Flood")
-    print("[2] UDP Flood")
-    print("[3] Slowloris")
-    print("[4] Exit\n")
-    choice = input(Fore.YELLOW + "[>] Choose method: ")
+def check_dependencies(): try: import requests except: os.system("pip install requests") try: import colorama except: os.system("pip install colorama")
 
-    if choice not in ["1", "2", "3"]:
-        print(Fore.RED + "[!] Invalid Choice")
-        return
+def banner(): clear() print(Fore.RED + Style.BRIGHT + f""" ██╗   ██╗ █████╗ ███╗   ███╗██████╗ ██╗██████╗ ███████╗ ██║   ██║██╔══██╗████╗ ████║██╔══██╗██║██╔══██╗██╔════╝ ██║   ██║███████║██╔████╔██║██████╔╝██║██║  ██║█████╗
+██║   ██║██╔══██║██║╚██╔╝██║██╔═══╝ ██║██║  ██║██╔══╝
+╚██████╔╝██║  ██║██║ ╚═╝ ██║██║     ██║██████╔╝███████╗ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝     ╚═╝╚═════╝ ╚══════╝ {Fore.YELLOW}Powerful DDoS Tool by Vampire Squad """ + Style.RESET_ALL)
 
-    method_map = {
-        "1": "tcp",
-        "2": "udp",
-        "3": "slowloris"
-    }
-    module = method_map[choice]
-    target = input(Fore.CYAN + "[>] Enter Target IP/Domain: ").strip()
-    port = int(input(Fore.CYAN + "[>] Enter Port (e.g., 80): ").strip())
-    threads = int(input(Fore.CYAN + "[>] Threads (recommended 100+): ").strip())
+def auto_fix_structure(): required_dirs = ["logs", "proxies", "attacks"] required_files = { "proxies/proxy.txt": "", "proxies/working_proxies.txt": "", "logs/.keep": "", } for d in required_dirs: os.makedirs(d, exist_ok=True) for f, content in required_files.items(): if not os.path.exists(f): with open(f, 'w') as fp: fp.write(content)
 
-    proxies = load_proxies()
-    print(Fore.MAGENTA + f"[~] Loaded {len(proxies)} proxies" if proxies else "[!] No proxies loaded")
+def get_input(prompt): try: return input(prompt) except KeyboardInterrupt: print("\n[!] Interrupted.") sys.exit(0)
 
-    print(Fore.GREEN + f"[✓] Launching {module.upper()} attack on {target}:{port} with {threads} threads...\n")
-    time.sleep(2)
+------------------------ MAIN MENU ---------------------------
 
-    # Launch attack
-    run_attack(module, target, port, threads, proxies)
+def attack_menu(): print(Fore.CYAN + "\nAvailable Attacks:") for idx, key in enumerate(MODULES.keys(), start=1): print(f"  {idx}. {key}") print("  0. Exit")
 
-# Entry point
-def main():
-    banner()
-    mode = input(Fore.YELLOW + "[?] Do you want to use Admin Mode? (y/n): ").strip().lower()
-    if mode == "y":
-        key = input(Fore.RED + "[>] Enter Admin Password: ").strip()
-        if key != PASSWORD:
-            print(Fore.RED + "[X] Incorrect Password!")
-            sys.exit(1)
-        print(Fore.GREEN + "[✓] Admin access granted.\n")
-    menu()
+choice = get_input(Fore.YELLOW + "\nSelect Attack [0-9]: ")
+if choice == '0':
+    sys.exit(0)
 
-if __name__ == "__main__":
+try:
+    idx = int(choice) - 1
+    attack_name = list(MODULES.keys())[idx]
+    module_path = MODULES[attack_name]
+    module = importlib.import_module(module_path)
+
+    ip = get_input(Fore.GREEN + "Target IP: ")
+    port = int(get_input("Target Port: "))
+    duration = int(get_input("Duration (in seconds): "))
+
+    thread = threading.Thread(target=module.__dict__[module_path.split('.')[-1] + '_attack'], args=(ip, port, duration))
+    thread.start()
+    thread.join()
+
+except (IndexError, ValueError):
+    print(Fore.RED + "Invalid input!")
+except Exception as e:
+    print(Fore.RED + f"Error: {e}")
+
+time.sleep(2)
+main()
+
+---------------------- ADMIN MODE -----------------------------
+
+def admin_login(): pw = get_input(Fore.MAGENTA + "Enter Admin Password: ") if pw == ADMIN_PASSWORD: print(Fore.GREEN + "Access Granted! Welcome Admin.") advanced_dashboard() else: print(Fore.RED + "Access Denied!") time.sleep(2) main()
+
+def advanced_dashboard(): while True: print(Fore.BLUE + "\n[Admin Dashboard] Select Option:") print("  1. Launch Attack") print("  2. View Working Proxies") print("  3. Exit") ch = get_input("Choice: ")
+
+if ch == '1':
+        attack_menu()
+    elif ch == '2':
+        try:
+            with open("proxies/working_proxies.txt") as f:
+                print(Fore.GREEN + f.read())
+        except:
+            print(Fore.RED + "No working proxies found!")
+    elif ch == '3':
+        sys.exit(0)
+    else:
+        print(Fore.RED + "Invalid choice.")
+
+--------------------------- MAIN ------------------------------
+
+def main(): banner() auto_fix_structure() check_dependencies() print(Fore.YELLOW + "\nModes:") print("  1. Admin (Password Protected)") print("  2. Public (No Password)")
+
+mode = get_input("\nChoose Mode [1/2]: ")
+if mode == '1':
+    admin_login()
+elif mode == '2':
+    attack_menu()
+else:
+    print(Fore.RED + "Invalid selection.")
+    time.sleep(1)
     main()
+
+if name == "main": main()
