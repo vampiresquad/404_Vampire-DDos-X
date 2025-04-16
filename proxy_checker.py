@@ -1,38 +1,30 @@
-import threading
+# proxy_checker.py
+
 import requests
-import socks
-import socket
-from colorama import Fore
 from concurrent.futures import ThreadPoolExecutor
 
-working_proxies = []
-
-def check_proxy(proxy, timeout=5):
-    ip, port = proxy.split(":")
+def load_proxies():
     try:
-        socks.setdefaultproxy(socks.PROXY_TYPE_HTTP, ip, int(port))
-        socket.socket = socks.socksocket
-        r = requests.get("http://httpbin.org/ip", timeout=timeout)
-        if r.status_code == 200:
-            working_proxies.append(proxy)
-            print(Fore.GREEN + f"[+] WORKING: {proxy}")
-    except:
-        print(Fore.RED + f"[-] DEAD: {proxy}")
+        with open("proxies/proxy.txt", "r") as file:
+            proxies = [p.strip() for p in file.readlines() if p.strip()]
+        print(f"[Proxy Checker] Loaded {len(proxies)} proxies")
 
-def load_proxies(proxy_file):
-    with open(proxy_file, "r") as f:
-        proxies = [line.strip() for line in f if line.strip()]
-    return proxies
+        def check(proxy):
+            try:
+                response = requests.get(
+                    "http://ip-api.com/json",
+                    proxies={"http": f"http://{proxy}", "https": f"http://{proxy}"},
+                    timeout=3
+                )
+                if response.status_code == 200:
+                    with open("proxies/working_proxies.txt", "a") as wf:
+                        wf.write(proxy + "\n")
+                    print(f"[Proxy Checker] Working: {proxy}")
+            except:
+                pass
 
-def start_checking(proxy_file, threads=30):
-    proxies = load_proxies(proxy_file)
-    print(Fore.CYAN + f"[*] Checking {len(proxies)} proxies using {threads} threads...")
-    
-    with ThreadPoolExecutor(max_workers=threads) as executor:
-        for proxy in proxies:
-            executor.submit(check_proxy, proxy)
+        with ThreadPoolExecutor(max_workers=50) as executor:
+            executor.map(check, proxies)
 
-    print(Fore.YELLOW + f"\n[!] Working proxies saved in working_proxies.txt")
-    with open("working_proxies.txt", "w") as out:
-        for proxy in working_proxies:
-            out.write(proxy + "\n")
+    except FileNotFoundError:
+        print("[Proxy Checker] proxy.txt not found.")
