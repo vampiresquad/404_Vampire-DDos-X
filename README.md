@@ -45,7 +45,8 @@ It supports:
 ## ⚙️ Installation
 
 ```bash
-git clone https://github.com/vampiresquad/Vampire-DDOS-X.git
-(https://github.com/vampiresquad/404_Vampire-DDos-X.git)
+apt update && apt upgrade -y
+apt install python3 -y
+git clone https://github.com/vampiresquad/404_Vampire-DDos-X.git
 cd Vampire-DDOS-X
 bash install.sh
