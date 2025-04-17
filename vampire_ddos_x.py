@@ -5,6 +5,7 @@ import socket
 import threading
 import random
 import subprocess
+import getpass
 
 # Auto-install required modules
 def install(module, pip_name=None):
@@ -22,9 +23,17 @@ import socks
 
 init(autoreset=True)
 
-# Admin Passwords
-ADMIN_PASSWORD = "SH404"
-TOR_PASSWORD = "SH404"
+# Get passwords securely from environment or fallback input
+ADMIN_PASSWORD = os.getenv("VAMPIRE_ADMIN_PW")
+TOR_PASSWORD = os.getenv("VAMPIRE_TOR_PW")
+
+if not ADMIN_PASSWORD or not TOR_PASSWORD:
+    print(f"{Fore.YELLOW}[!] First time setup: Set environment variables for passwords")
+    ADMIN_PASSWORD = getpass.getpass("Set ADMIN password: ")
+    TOR_PASSWORD = getpass.getpass("Set TOR password: ")
+    os.environ["VAMPIRE_ADMIN_PW"] = ADMIN_PASSWORD
+    os.environ["VAMPIRE_TOR_PW"] = TOR_PASSWORD
+    print(f"{Fore.GREEN}[✓] Passwords set for this session.\n")
 
 # Global Counters
 requests_sent = 0
@@ -36,11 +45,8 @@ admin_banner = f"""
 {Fore.RED}
 ╔══════════════════════════════════════════════╗
 ║       █████▒▒▒ ADMIN PANEL ▒▒▒█████         ║
-║    ╔═╗╔═╗╔╦╗╔═╗╦═╗╦╔═╗╔═╗╔═╗  ╔═╗╦ ╦         ║
-║    ╚═╗║╣  ║║║╣ ╠╦╝║║ ╦║╣ ╚═╗  ║ ╦║ ║         ║
-║    ╚═╝╚═╝═╩╝╚═╝╩╚═╩╚═╝╚═╝╚═╝  ╚═╝╚═╝         ║
-║            [Vampire-DDOS-X]                 ║
-║        Developed by: Muhammad Shourov       ║
+║        [Vampire-DDOS-X]                     ║
+║    Developed by: Muhammad Shourov (Vampire) ║
 ╚══════════════════════════════════════════════╝
 """
 
@@ -48,11 +54,6 @@ user_banner = f"""
 {Fore.CYAN}
 ╔══════════════════════════════════════════════╗
 ║       █████▒▒▒ USER PANEL ▒▒▒█████          ║
-║    ██    ██ ██████  ██████  ██    ██        ║
-║    ██    ██ ██   ██ ██   ██ ██    ██        ║
-║    ██    ██ ██████  ██████  ██    ██        ║
-║    ██    ██ ██      ██      ██    ██        ║
-║     ██████  ██      ██       ██████         ║
 ║          [Vampire-DDOS-X]                   ║
 ║      Created by: Muhammad Shourov           ║
 ╚══════════════════════════════════════════════╝
@@ -67,7 +68,7 @@ def install_tor():
 def enable_tor():
     print("[?] Enable Anonymous Mode (TOR)? (y/n): ", end='')
     if input().lower() == 'y':
-        password = input("Enter TOR password: ")
+        password = getpass.getpass("Enter TOR password: ")
         if password == TOR_PASSWORD:
             print("[✓] Enabling TOR routing...")
             install_tor()
@@ -120,7 +121,7 @@ def main():
     print(f"{Fore.CYAN}[?] Enter Mode (admin/user): {Style.RESET_ALL}", end='')
     mode = input().strip().lower()
     if mode == "admin":
-        pw = input("Enter Admin Password: ")
+        pw = getpass.getpass("Enter Admin Password: ")
         if pw != ADMIN_PASSWORD:
             print("[!] Wrong password. Access denied.")
             return
