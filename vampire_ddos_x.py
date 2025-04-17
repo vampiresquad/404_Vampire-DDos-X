@@ -23,10 +23,9 @@ import socks
 
 init(autoreset=True)
 
-# Ask passwords every time securely
-ADMIN_PASSWORD = getpass.getpass(f"{Fore.YELLOW}[?] Enter ADMIN password: ")
-TOR_PASSWORD = getpass.getpass(f"{Fore.YELLOW}[?] Enter TOR password: ")
-print(f"{Fore.GREEN}[✓] Passwords accepted for this session.\n")
+# Admin Passwords
+ADMIN_PASSWORD = "SH404"
+TOR_PASSWORD = "SH404"
 
 # Global Counters
 requests_sent = 0
@@ -38,8 +37,11 @@ admin_banner = f"""
 {Fore.RED}
 ╔══════════════════════════════════════════════╗
 ║       █████▒▒▒ ADMIN PANEL ▒▒▒█████         ║
-║        [Vampire-DDOS-X]                     ║
-║    Developed by: Muhammad Shourov (Vampire) ║
+║    ╔═╗╔═╗╔╦╗╔═╗╦═╗╦╔═╗╔═╗╔═╗  ╔═╗╦ ╦         ║
+║    ╚═╗║╣  ║║║╣ ╠╦╝║║ ╦║╣ ╚═╗  ║ ╦║ ║         ║
+║    ╚═╝╚═╝═╩╝╚═╝╩╚═╩╚═╝╚═╝╚═╝  ╚═╝╚═╝         ║
+║            [Vampire-DDOS-X]                 ║
+║        Developed by: Muhammad Shourov       ║
 ╚══════════════════════════════════════════════╝
 """
 
@@ -47,6 +49,11 @@ user_banner = f"""
 {Fore.CYAN}
 ╔══════════════════════════════════════════════╗
 ║       █████▒▒▒ USER PANEL ▒▒▒█████          ║
+║    ██    ██ ██████  ██████  ██    ██        ║
+║    ██    ██ ██   ██ ██   ██ ██    ██        ║
+║    ██    ██ ██████  ██████  ██    ██        ║
+║    ██    ██ ██      ██      ██    ██        ║
+║     ██████  ██      ██       ██████         ║
 ║          [Vampire-DDOS-X]                   ║
 ║      Created by: Muhammad Shourov           ║
 ╚══════════════════════════════════════════════╝
@@ -140,7 +147,6 @@ def main():
 
     print("""
 [?] Select Attack Type:
-
 1. HTTP Flood
 2. UDP Flood
 3. SYN Flood
