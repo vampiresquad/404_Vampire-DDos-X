@@ -1,51 +1,83 @@
 #!/bin/bash
 
-# Dracula Installer - Vampire-DDOS-X
-clear
-echo -e "\e[1;35m[*] Initializing setup... \e[0m"
-sleep 1
+# Colors
+GREEN='\033[0;32m'
+RED='\033[1;31m'
+YELLOW='\033[1;33m'
+BLUE='\033[1;34m'
+CYAN='\033[1;36m'
+NC='\033[0m' # No Color
 
-# Fix for Termux pip install restriction
-fix_pip_for_termux() {
-    if [ "$PREFIX" == "/data/data/com.termux/files/usr" ]; then
-        echo -e "\e[1;33m[!] Termux detected. Trying to fix pip issue...\e[0m"
-        curl -sS https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-        python get-pip.py --break-system-packages 2>/dev/null || python3 get-pip.py --break-system-packages
-        rm get-pip.py
-    fi
+# Logo
+echo -e "${BLUE}╔══════════════════════════════════════╗"
+echo -e "${RED}║      Installing Vampire-DDOS-X       ║"
+echo -e "${BLUE}╚══════════════════════════════════════╝${NC}"
+
+# Check if running in Termux or Linux
+if [[ $PREFIX == *"com.termux"* ]]; then
+    OS="termux"
+    echo -e "${YELLOW}[+] Detected Termux environment${NC}"
+else
+    OS="linux"
+    echo -e "${YELLOW}[+] Detected Linux environment${NC}"
+fi
+
+# Function to install packages with check
+install_pkg() {
+    for pkg in "$@"; do
+        if ! command -v $pkg > /dev/null 2>&1; then
+            echo -e "${YELLOW}[+] Installing missing package: $pkg${NC}"
+            if [ "$OS" = "termux" ]; then
+                pkg install -y $pkg
+            else
+                sudo apt install -y $pkg
+            fi
+        else
+            echo -e "${GREEN}[✓] $pkg already installed${NC}"
+        fi
+    done
 }
 
-# Check for command and install if missing
-install_if_missing() {
-    local pkg="$1"
-    if ! command -v "$pkg" >/dev/null 2>&1; then
-        echo -e "\e[1;36m[+] Installing $pkg...\e[0m"
-        pkg install -y "$pkg" || apt install -y "$pkg"
-    fi
+# Function to install python modules with pip
+install_module() {
+    for module in "$@"; do
+        if ! python3 -c "import $module" 2>/dev/null; then
+            echo -e "${YELLOW}[+] Installing Python module: $module${NC}"
+            pip3 install $module || pip install $module
+        else
+            echo -e "${GREEN}[✓] Python module $module is installed${NC}"
+        fi
+    done
 }
 
-# Update & upgrade system
-apt update -y && apt upgrade -y
+# Ensure Python3 and pip
+echo -e "${YELLOW}[~] Checking Python & Pip...${NC}"
+install_pkg python python3 curl wget git
 
-# Install core tools
-install_if_missing python
-install_if_missing python3
-install_if_missing curl
-install_if_missing git
-install_if_missing tsu
-install_if_missing figlet
-install_if_missing toilet
+# Fix Termux pip issue
+if [ "$OS" = "termux" ]; then
+    echo -e "${YELLOW}[~] Fixing pip in Termux...${NC}"
+    curl -sS https://bootstrap.pypa.io/get-pip.py | python || true
+fi
 
-# Termux-only fixes
-fix_pip_for_termux
+install_pkg tor
 
-# Install pip packages
-echo -e "\e[1;36m[+] Installing required Python modules...\e[0m"
-pip install -r requirements.txt --break-system-packages 2>/dev/null || \
-pip3 install -r requirements.txt --break-system-packages 2>/dev/null || \
-pip install colorama requests pysocks --break-system-packages || \
-pip3 install colorama requests pysocks --break-system-packages
+# Python pip install
+install_pkg pip || true
+pip3 install --upgrade pip
 
-# Done
-echo -e "\e[1;32m[✓] All dependencies installed successfully!\e[0m"
-echo -e "\e[1;35m[!] You can now run: python3 vampire_ddos_x.py\e[0m"
+# Install Python dependencies
+install_module colorama socks
+
+# Permission fix
+chmod +x vampire-ddos.py
+
+# Final message
+echo -e "${GREEN}"
+echo "=============================================="
+echo "  Vampire-DDOS-X Installed Successfully!"
+echo -e "  ${CYAN}To Run The Tool:${NC} ${YELLOW}python3 vampire_ddos_x.py${NC}"
+echo ""
+echo "  Coded by: Muhammad Shourov (VAMPIRE)"
+echo "=============================================="
+echo -e "${NC}"
