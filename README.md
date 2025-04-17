@@ -47,6 +47,7 @@ It supports:
 ```bash
 apt update && apt upgrade -y
 apt install python3 -y
+rm -rf 404_Vampire-DDos-X
 git clone https://github.com/vampiresquad/404_Vampire-DDos-X.git
 cd 404_Vampire-DDos-X
 bash install.sh
