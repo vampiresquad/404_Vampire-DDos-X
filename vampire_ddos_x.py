@@ -23,17 +23,10 @@ import socks
 
 init(autoreset=True)
 
-# Get passwords securely from environment or fallback input
-ADMIN_PASSWORD = os.getenv("VAMPIRE_ADMIN_PW")
-TOR_PASSWORD = os.getenv("VAMPIRE_TOR_PW")
-
-if not ADMIN_PASSWORD or not TOR_PASSWORD:
-    print(f"{Fore.YELLOW}[!] First time setup: Set environment variables for passwords")
-    ADMIN_PASSWORD = getpass.getpass("Set ADMIN password: ")
-    TOR_PASSWORD = getpass.getpass("Set TOR password: ")
-    os.environ["VAMPIRE_ADMIN_PW"] = ADMIN_PASSWORD
-    os.environ["VAMPIRE_TOR_PW"] = TOR_PASSWORD
-    print(f"{Fore.GREEN}[✓] Passwords set for this session.\n")
+# Ask passwords every time securely
+ADMIN_PASSWORD = getpass.getpass(f"{Fore.YELLOW}[?] Enter ADMIN password: ")
+TOR_PASSWORD = getpass.getpass(f"{Fore.YELLOW}[?] Enter TOR password: ")
+print(f"{Fore.GREEN}[✓] Passwords accepted for this session.\n")
 
 # Global Counters
 requests_sent = 0
