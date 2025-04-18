@@ -64,55 +64,49 @@ def show_disclaimer():
     from colorama import Fore, Style, init
     init(autoreset=True)
 
-    def clear_screen():
-        os.system('cls' if os.name == 'nt' else 'clear')
-
     def shake_terminal():
-        clear_screen()
+        os.system("clear")
         print("\n" * 5 + Fore.RED + Style.BRIGHT + " " * 20 + "[!! WARNING !!]")
         time.sleep(0.08)
-        clear_screen()
+        os.system("clear")
         print("\n" * 3 + Fore.YELLOW + Style.BRIGHT + " " * 15 + "System Integrity Alert!")
         time.sleep(0.08)
 
-    try:
-        for _ in range(3):
-            shake_terminal()
+    # Terminal shake animation (3x)
+    for _ in range(3):
+        shake_terminal()
 
-        disclaimer = f"""
+    # Typewriter Disclaimer Text
+    disclaimer = f"""
 {Fore.LIGHTRED_EX}{Style.BRIGHT}
-╔══════════════════════════════════════════════════════════════════════════╗
-║                          {Fore.YELLOW}LEGAL & ETHICAL DISCLAIMER{Fore.LIGHTRED_EX}                          ║
-╠══════════════════════════════════════════════════════════════════════════╣
-║ {Fore.LIGHTGREEN_EX}This tool is intended for {Fore.CYAN}educational and ethical use{Fore.LIGHTGREEN_EX} only.     {Fore.LIGHTRED_EX}║
-║ {Fore.LIGHTGREEN_EX}Unauthorized usage is strictly prohibited and may violate       {Fore.LIGHTRED_EX}║
-║ {Fore.LIGHTGREEN_EX}national and international cybercrime laws.                      {Fore.LIGHTRED_EX}║
-║                                                                          ║
-║ {Fore.LIGHTBLUE_EX}You must have proper authorization to test any system.            {Fore.LIGHTRED_EX}║
-║ {Fore.LIGHTBLUE_EX}The developer is not responsible for any misuse.                 {Fore.LIGHTRED_EX}║
-║                                                                          ║
-║ {Fore.YELLOW}Entering this tool means you {Fore.LIGHTMAGENTA_EX}fully agree to these terms.        {Fore.LIGHTRED_EX}║
-╚══════════════════════════════════════════════════════════════════════════╝
+╔════════════════════════════════════════════════════════════╗
+║                  {Fore.YELLOW}LEGAL & ETHICAL DISCLAIMER{Fore.LIGHTRED_EX}                  ║
+╠════════════════════════════════════════════════════════════╣
+║ {Fore.WHITE}This tool is intended for {Fore.GREEN}educational{Fore.WHITE} and {Fore.GREEN}ethical use{Fore.WHITE} only.  ║
+║ {Fore.WHITE}Unauthorized usage is strictly {Fore.RED}prohibited{Fore.WHITE} and may      ║
+║ {Fore.WHITE}violate national and international {Fore.MAGENTA}cybercrime laws{Fore.WHITE}. ║
+║                                                            ║
+║ {Fore.WHITE}You must have proper {Fore.CYAN}authorization{Fore.WHITE} to test any system.  ║
+║ {Fore.WHITE}The developer is {Fore.RED}not responsible{Fore.WHITE} for any misuse.        ║
+║                                                            ║
+║ {Fore.YELLOW}Entering this tool means you fully agree to these terms.{Fore.LIGHTRED_EX}  ║
+╚════════════════════════════════════════════════════════════╝
 
 {Fore.CYAN}{Style.BRIGHT}
- Author   : {Fore.LIGHTWHITE_EX}Muhammad Shourov (VAMPIRE)
- Team     : {Fore.LIGHTWHITE_EX}Vampire Squad
- GitHub   : {Fore.LIGHTWHITE_EX}https://github.com/vampiresquad
+ Author   : {Fore.GREEN}Muhammad Shourov (VAMPIRE)
+ Team     : {Fore.MAGENTA}Vampire Squad
+ GitHub   : {Fore.YELLOW}https://github.com/vampiresquad
  Contact  : {Fore.LIGHTWHITE_EX}vampiresquad.org@gmail.com
- Powered  : {Fore.LIGHTWHITE_EX}DRACULA - Terminal of Vampire Squad
+ Powered  : {Fore.RED}DRACULA{Fore.CYAN} - Terminal of Vampire Squad
 """
 
-        for char in disclaimer:
-            sys.stdout.write(char)
-            sys.stdout.flush()
-            time.sleep(0.0015)
+    for char in disclaimer:
+        sys.stdout.write(char)
+        sys.stdout.flush()
+        time.sleep(0.0015)
 
-        time.sleep(0.5)
-        input(Fore.GREEN + Style.BRIGHT + "\n[!] Press ENTER if you agree with the above terms to continue...")
-
-    except KeyboardInterrupt:
-        print(Fore.RED + "\n[!] Interrupted! Exiting...")
-        sys.exit(0)
+    # Confirmation to proceed
+    input(Fore.GREEN + Style.BRIGHT + "\n[!] Press ENTER if you agree with the above terms to continue...")
 def install_tor():
     try:
         subprocess.call(['pkg', 'install', '-y', 'tor'])
