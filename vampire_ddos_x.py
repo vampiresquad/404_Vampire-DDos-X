@@ -61,21 +61,29 @@ user_banner = f"""
 
 def show_disclaimer():
     disclaimer = f"""
-{Fore.YELLOW}{Style.BRIGHT}
-╔══════════════════════════════════════════════╗
-║           LEGAL & ETHICAL WARNING           ║
-╠══════════════════════════════════════════════╣
-║ This tool is intended for educational,      ║
-║ research, and authorized testing purposes   ║
-║ only. Unauthorized use against targets      ║
-║ without explicit permission is illegal and  ║
-║ strictly prohibited under international law.║
-║                                             ║
-║ By proceeding, you confirm you are a        ║
-║ certified tester or acting with full        ║
-║ authorization. Misuse can lead to legal     ║
-║ consequences. Vampire Squad and Muhammad Shourov is not liable.  ║
-╚══════════════════════════════════════════════╝
+{Fore.LIGHTRED_EX}{Style.BRIGHT}
+╔════════════════════════════════════════════════════════╗
+║ {Fore.RED}██╗     ███████╗ █████╗  ██████╗ ██╗     ███████╗  {Fore.LIGHTRED_EX}║
+║ {Fore.RED}██║     ██╔════╝██╔══██╗██╔════╝ ██║     ██╔════╝  {Fore.LIGHTRED_EX}║
+║ {Fore.RED}██║     █████╗  ███████║██║  ███╗██║     █████╗    {Fore.LIGHTRED_EX}║
+║ {Fore.RED}██║     ██╔══╝  ██╔══██║██║   ██║██║     ██╔══╝    {Fore.LIGHTRED_EX}║
+║ {Fore.RED}███████╗███████╗██║  ██║╚██████╔╝███████╗███████╗  {Fore.LIGHTRED_EX}║
+║ {Fore.RED}╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝  {Fore.LIGHTRED_EX}║
+╠════════════════════════════════════════════════════════╣
+║ {Fore.YELLOW}WARNING! This tool is a DIGITAL WEAPON.             {Fore.LIGHTRED_EX}║
+║ {Fore.YELLOW}Unauthorized use can cause SERIOUS LEGAL ISSUES!   {Fore.LIGHTRED_EX}║
+║                                                    {Fore.LIGHTRED_EX}║
+║ {Fore.LIGHTYELLOW_EX}This tool is only for:                             {Fore.LIGHTRED_EX}║
+║   → Cybersecurity Experts                           {Fore.LIGHTRED_EX}║
+║   → Ethical Hackers (with permission)               {Fore.LIGHTRED_EX}║
+║   → Legal Penetration Testers                       {Fore.LIGHTRED_EX}║
+║                                                    {Fore.LIGHTRED_EX}║
+║ {Fore.RED}If you misuse this tool, you are FULLY RESPONSIBLE.{Fore.LIGHTRED_EX}║
+║ {Fore.RED}We, the Vampire Squad and Coder : Muhammad Shourov take NO LIABILITY.          {Fore.LIGHTRED_EX}║
+║                                                    {Fore.LIGHTRED_EX}║
+║ {Fore.LIGHTWHITE_EX}Proceed ONLY if you're 100% authorized.            {Fore.LIGHTRED_EX}║
+║ Press Ctrl+C now if you're unsure...               {Fore.LIGHTRED_EX}║
+╚════════════════════════════════════════════════════════╝
 {Style.RESET_ALL}
 """
     print(disclaimer)
