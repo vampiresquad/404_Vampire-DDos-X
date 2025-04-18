@@ -25,7 +25,7 @@ import socks
 init(autoreset=True)
 
 # Import disclaimer
-import disclaimer
+import disclaimer.py
 
 # Admin Passwords
 ADMIN_PASSWORD = "SH404"
