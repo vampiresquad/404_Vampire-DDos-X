@@ -59,6 +59,27 @@ user_banner = f"""
 ╚══════════════════════════════════════════════╝
 """
 
+def show_disclaimer():
+    disclaimer = f"""
+{Fore.YELLOW}{Style.BRIGHT}
+╔══════════════════════════════════════════════╗
+║           LEGAL & ETHICAL WARNING           ║
+╠══════════════════════════════════════════════╣
+║ This tool is intended for educational,      ║
+║ research, and authorized testing purposes   ║
+║ only. Unauthorized use against targets      ║
+║ without explicit permission is illegal and  ║
+║ strictly prohibited under international law.║
+║                                             ║
+║ By proceeding, you confirm you are a        ║
+║ certified tester or acting with full        ║
+║ authorization. Misuse can lead to legal     ║
+║ consequences. Vampire Squad and Muhammad Shourov is not liable.  ║
+╚══════════════════════════════════════════════╝
+{Style.RESET_ALL}
+"""
+    print(disclaimer)
+
 def install_tor():
     try:
         subprocess.call(['pkg', 'install', '-y', 'tor'])
@@ -120,6 +141,8 @@ def show_stats():
 def main():
     print(f"{Fore.CYAN}[?] Enter Mode (admin/user): {Style.RESET_ALL}", end='')
     mode = input().strip().lower()
+    show_disclaimer()
+
     if mode == "admin":
         pw = getpass.getpass("Enter Admin Password: ")
         if pw != ADMIN_PASSWORD:
@@ -176,7 +199,7 @@ def main():
         print(f"\n{Fore.RED}[!] Attack stopped by user.{Style.RESET_ALL}")
         print(f"{Fore.MAGENTA}[#] Total Requests Sent: {requests_sent}{Style.RESET_ALL}")
         os.system("pkill tor")
-        print(f"{Fore.RED}[X] Shutting down Vampire-DDOS-X... Stay lethal!{Style.RESET_ALL}")
+        print(f"{Fore.RED}[X] Shutting down Vampire-DDOS-X...We are Legend Warrior, We can do Anything! Stay With_Us!{Style.RESET_ALL}")
 
 if __name__ == "__main__":
     main()
