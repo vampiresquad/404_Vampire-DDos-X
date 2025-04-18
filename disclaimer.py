@@ -45,7 +45,7 @@ def show_disclaimer():
 ║ {Fore.RED}Only ethical hackers, security researchers, or authorized users {Fore.LIGHTYELLOW_EX}║
 ║ {Fore.RED}are allowed to use this tool. Unauthorized usage is ILLEGAL.   {Fore.LIGHTYELLOW_EX}║
 ╠════════════════════════════════════════════════════════════════╣
-║ {Fore.CYAN}Author : {Fore.LIGHTWHITE_EX}Muhammad Shourov a.k.a. VAMPIRE                      {Fore.LIGHTYELLOW_EX}║
+║ {Fore.CYAN}Author : {Fore.LIGHTWHITE_EX}Muhammad Shourov (VAMPIRE)                      {Fore.LIGHTYELLOW_EX}║
 ║ {Fore.CYAN}Team   : {Fore.LIGHTWHITE_EX}Vampire Squad (Ethical Hackers Organization)        {Fore.LIGHTYELLOW_EX}║
 ║ {Fore.CYAN}GitHub : {Fore.LIGHTWHITE_EX}https://github.com/vampiresquad                      {Fore.LIGHTYELLOW_EX}║
 ╠════════════════════════════════════════════════════════════════╣
