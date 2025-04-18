@@ -64,50 +64,55 @@ def show_disclaimer():
     from colorama import Fore, Style, init
     init(autoreset=True)
 
+    def clear_screen():
+        os.system('cls' if os.name == 'nt' else 'clear')
+
     def shake_terminal():
-        os.system("clear")
+        clear_screen()
         print("\n" * 5 + Fore.RED + Style.BRIGHT + " " * 20 + "[!! WARNING !!]")
         time.sleep(0.08)
-        os.system("clear")
-        print("\n" * 3 + Fore.YELLOW + " " * 15 + "System Integrity Alert!")
+        clear_screen()
+        print("\n" * 3 + Fore.YELLOW + Style.BRIGHT + " " * 15 + "System Integrity Alert!")
         time.sleep(0.08)
 
-    # Terminal shake animation (3x)
-    for _ in range(3):
-        shake_terminal()
+    try:
+        for _ in range(3):
+            shake_terminal()
 
-    # Typewriter Disclaimer Text
-    disclaimer = f"""
+        disclaimer = f"""
 {Fore.LIGHTRED_EX}{Style.BRIGHT}
-╔════════════════════════════════════════════════════════════╗
-║                 LEGAL & ETHICAL DISCLAIMER                ║
-╠════════════════════════════════════════════════════════════╣
-║ This tool is intended for educational and ethical use      ║
-║ only. Unauthorized usage is strictly prohibited and may    ║
-║ violate national and international cybercrime laws.        ║
-║                                                            ║
-║ You must have proper authorization to test any system.     ║
-║ The developer is not responsible for any misuse.           ║
-║                                                            ║
-║ Entering this tool means you fully agree to these terms.   ║
-╚════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════╗
+║                          {Fore.YELLOW}LEGAL & ETHICAL DISCLAIMER{Fore.LIGHTRED_EX}                          ║
+╠══════════════════════════════════════════════════════════════════════════╣
+║ {Fore.LIGHTGREEN_EX}This tool is intended for {Fore.CYAN}educational and ethical use{Fore.LIGHTGREEN_EX} only.     {Fore.LIGHTRED_EX}║
+║ {Fore.LIGHTGREEN_EX}Unauthorized usage is strictly prohibited and may violate       {Fore.LIGHTRED_EX}║
+║ {Fore.LIGHTGREEN_EX}national and international cybercrime laws.                      {Fore.LIGHTRED_EX}║
+║                                                                          ║
+║ {Fore.LIGHTBLUE_EX}You must have proper authorization to test any system.            {Fore.LIGHTRED_EX}║
+║ {Fore.LIGHTBLUE_EX}The developer is not responsible for any misuse.                 {Fore.LIGHTRED_EX}║
+║                                                                          ║
+║ {Fore.YELLOW}Entering this tool means you {Fore.LIGHTMAGENTA_EX}fully agree to these terms.        {Fore.LIGHTRED_EX}║
+╚══════════════════════════════════════════════════════════════════════════╝
 
 {Fore.CYAN}{Style.BRIGHT}
- Author   : Muhammad Shourov (VAMPIRE)
- Team     : Vampire Squad
- GitHub   : https://github.com/vampiresquad
- Contact  : vampiresquad.org@gmail.com
- Powered  : DRACULA - Terminal of Vampire Squad
+ Author   : {Fore.LIGHTWHITE_EX}Muhammad Shourov (VAMPIRE)
+ Team     : {Fore.LIGHTWHITE_EX}Vampire Squad
+ GitHub   : {Fore.LIGHTWHITE_EX}https://github.com/vampiresquad
+ Contact  : {Fore.LIGHTWHITE_EX}vampiresquad.org@gmail.com
+ Powered  : {Fore.LIGHTWHITE_EX}DRACULA - Terminal of Vampire Squad
 """
 
-    for char in disclaimer:
-        sys.stdout.write(char)
-        sys.stdout.flush()
-        time.sleep(0.0015)
+        for char in disclaimer:
+            sys.stdout.write(char)
+            sys.stdout.flush()
+            time.sleep(0.0015)
 
-    # Confirmation to proceed
-    input(Fore.GREEN + Style.BRIGHT + "\n[!] Press ENTER if you agree with the above terms to continue...")
+        time.sleep(0.5)
+        input(Fore.GREEN + Style.BRIGHT + "\n[!] Press ENTER if you agree with the above terms to continue...")
 
+    except KeyboardInterrupt:
+        print(Fore.RED + "\n[!] Interrupted! Exiting...")
+        sys.exit(0)
 def install_tor():
     try:
         subprocess.call(['pkg', 'install', '-y', 'tor'])
