@@ -60,25 +60,35 @@ user_banner = f"""
 """
 
 def show_disclaimer():
-    disclaimer = f"""
-{Fore.YELLOW}{Style.BRIGHT}
-╔══════════════════════════════════════════════╗
-║           LEGAL & ETHICAL WARNING           ║
-╠══════════════════════════════════════════════╣
-║ This tool is intended for educational,      ║
-║ research, and authorized testing purposes   ║
-║ only. Unauthorized use against targets      ║
-║ without explicit permission is illegal and  ║
-║ strictly prohibited under international law.║
-║                                             ║
-║ By proceeding, you confirm you are a        ║
-║ certified tester or acting with full        ║
-║ authorization. Misuse can lead to legal     ║
-║ consequences. Vampire Squad is not liable.  ║
-╚══════════════════════════════════════════════╝
-{Style.RESET_ALL}
-"""
+    os.system("clear")
+    for _ in range(5):
+        print("\033[91m" + " " * 10 + "!!! WARNING !!!" + " " * 10)
+        time.sleep(0.1)
+        os.system("clear")
+        time.sleep(0.1)
+
+    disclaimer = f"""{Fore.LIGHTYELLOW_EX}{Style.BRIGHT}
+╔══════════════════════════════════════════════════════════════╗
+║               {Fore.RED}*** LEGAL & ETHICAL DISCLAIMER ***{Fore.LIGHTYELLOW_EX}               ║
+╠══════════════════════════════════════════════════════════════╣
+║ This tool, {Fore.CYAN}Vampire-DDOS-X{Fore.LIGHTYELLOW_EX}, is intended ONLY for:             ║
+║  → {Fore.GREEN}Educational{Fore.LIGHTYELLOW_EX} purposes                                        ║
+║  → {Fore.GREEN}Cybersecurity research{Fore.LIGHTYELLOW_EX} and authorized testing              ║
+║  → {Fore.GREEN}Red team simulations{Fore.LIGHTYELLOW_EX} with full permission                  ║
+║                                                              ║
+║ Unauthorized usage against systems without consent is ILLEGAL║
+║ and punishable by international cybercrime laws.             ║
+║                                                              ║
+║ By using this tool, you AGREE to be a responsible ethical    ║
+║ hacker or tester. Misuse will lead to consequences.          ║
+║                                                              ║
+║      {Fore.MAGENTA}Author  : Muhammad Shourov (VAMPIRE){Fore.LIGHTYELLOW_EX}                  ║
+║      {Fore.MAGENTA}GitHub  : https://github.com/vampiresquad{Fore.LIGHTYELLOW_EX}             ║
+║      {Fore.MAGENTA}Team    : Vampire Squad{Fore.LIGHTYELLOW_EX}                               ║
+╚══════════════════════════════════════════════════════════════╝
+{Style.RESET_ALL}"""
     print(disclaimer)
+    time.sleep(2)
 
 def install_tor():
     try:
