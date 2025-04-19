@@ -1,7 +1,0 @@
-__pycache__/
-*.pyc
-*.log
-logs/
-proxies/working_proxies.txt
-.env
-.DS_Store
