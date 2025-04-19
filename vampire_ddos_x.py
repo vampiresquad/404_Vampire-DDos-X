@@ -72,41 +72,38 @@ def show_disclaimer():
         print("\n" * 3 + Fore.YELLOW + Style.BRIGHT + " " * 15 + "System Integrity Alert!")
         time.sleep(0.08)
 
-    # Terminal shake animation (3x)
     for _ in range(3):
         shake_terminal()
 
-    # Typewriter Disclaimer Text
-    disclaimer = f"""
-{Fore.LIGHTRED_EX}{Style.BRIGHT}
-╔════════════════════════════════════════════════════════════╗
-║                  {Fore.YELLOW}LEGAL & ETHICAL DISCLAIMER{Fore.LIGHTRED_EX}                  ║
-╠════════════════════════════════════════════════════════════╣
-║ {Fore.WHITE}This tool is intended for {Fore.GREEN}educational{Fore.WHITE} and {Fore.GREEN}ethical use{Fore.WHITE} only.  ║
-║ {Fore.WHITE}Unauthorized usage is strictly {Fore.RED}prohibited{Fore.WHITE} and may      ║
-║ {Fore.WHITE}violate national and international {Fore.MAGENTA}cybercrime laws{Fore.WHITE}. ║
-║                                                            ║
-║ {Fore.WHITE}You must have proper {Fore.CYAN}authorization{Fore.WHITE} to test any system.  ║
-║ {Fore.WHITE}The developer is {Fore.RED}not responsible{Fore.WHITE} for any misuse.        ║
-║                                                            ║
-║ {Fore.YELLOW}Entering this tool means you fully agree to these terms.{Fore.LIGHTRED_EX}  ║
-╚════════════════════════════════════════════════════════════╝
+    disclaimer_lines = [
+        f"{Fore.LIGHTRED_EX}{Style.BRIGHT}╔════════════════════════════════════════════════════════════╗",
+        f"{Fore.LIGHTRED_EX}{Style.BRIGHT}║                  {Fore.YELLOW}LEGAL & ETHICAL DISCLAIMER{Fore.LIGHTRED_EX}                  ║",
+        f"{Fore.LIGHTRED_EX}{Style.BRIGHT}╠════════════════════════════════════════════════════════════╣",
+        f"{Fore.WHITE}║ This tool is intended for {Fore.GREEN}educational{Fore.WHITE} and {Fore.GREEN}ethical use{Fore.WHITE} only.  ║",
+        f"{Fore.WHITE}║ Unauthorized usage is strictly {Fore.RED}prohibited{Fore.WHITE} and may      ║",
+        f"{Fore.WHITE}║ violate national and international {Fore.MAGENTA}cybercrime laws{Fore.WHITE}. ║",
+        f"{Fore.WHITE}║                                                            ║",
+        f"{Fore.WHITE}║ You must have proper {Fore.CYAN}authorization{Fore.WHITE} to test any system.  ║",
+        f"{Fore.WHITE}║ The developer is {Fore.RED}not responsible{Fore.WHITE} for any misuse.        ║",
+        f"{Fore.WHITE}║                                                            ║",
+        f"{Fore.YELLOW}║ Entering this tool means you fully agree to these terms. {Fore.LIGHTRED_EX}║",
+        f"{Fore.LIGHTRED_EX}{Style.BRIGHT}╚════════════════════════════════════════════════════════════╝",
+        "",
+        f"{Fore.CYAN}{Style.BRIGHT} Author   : {Fore.GREEN}Muhammad Shourov (VAMPIRE)",
+        f"{Fore.CYAN} Team     : {Fore.MAGENTA}Vampire Squad",
+        f"{Fore.CYAN} GitHub   : {Fore.YELLOW}https://github.com/vampiresquad",
+        f"{Fore.CYAN} Contact  : {Fore.LIGHTWHITE_EX}vampiresquad.org@gmail.com",
+        f"{Fore.CYAN} Powered  : {Fore.RED}DRACULA {Fore.CYAN}- Terminal of Vampire Squad",
+        "",
+        f"{Fore.GREEN}{Style.BRIGHT}[!] Press ENTER if you agree with the above terms to continue..."
+    ]
 
-{Fore.CYAN}{Style.BRIGHT}
- Author   : {Fore.GREEN}Muhammad Shourov (VAMPIRE)
- Team     : {Fore.MAGENTA}Vampire Squad
- GitHub   : {Fore.YELLOW}https://github.com/vampiresquad
- Contact  : {Fore.LIGHTWHITE_EX}vampiresquad.org@gmail.com
- Powered  : {Fore.RED}DRACULA{Fore.CYAN} - Terminal of Vampire Squad
-"""
-
-    for char in disclaimer:
-        sys.stdout.write(char)
-        sys.stdout.flush()
-        time.sleep(0.0015)
-
-    # Confirmation to proceed
-    input(Fore.GREEN + Style.BRIGHT + "\n[!] Press ENTER if you agree with the above terms to continue...")
+    for line in disclaimer_lines:
+        for char in line:
+            sys.stdout.write(char)
+            sys.stdout.flush()
+            time.sleep(0.0009)
+        print()
 def install_tor():
     try:
         subprocess.call(['pkg', 'install', '-y', 'tor'])
